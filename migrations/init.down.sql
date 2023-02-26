@@ -1,3 +1,5 @@
+-- step 1
+
 DROP TABLE customers
 DROP TABLE employees
 DROP TABLE bills

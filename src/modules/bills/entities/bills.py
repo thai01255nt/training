@@ -11,7 +11,7 @@ class Bill(Base):
         {"schema": DatabaseConsts.SCHEMA},
     )
 
-    id = sqlalchemy.Column(sqlalchemy.INT)
+    id = sqlalchemy.Column(sqlalchemy.INT, primary_key=True)
     soldDate = sqlalchemy.Column(sqlalchemy.DATE)
     customerID = sqlalchemy.Column(sqlalchemy.INT)
     employeeID = sqlalchemy.Column(sqlalchemy.INT)

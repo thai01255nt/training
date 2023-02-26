@@ -9,6 +9,7 @@ class BillDrug(Base):
     __tablename__ = "billDrugs"
     __table_args__ = (
         {"schema": DatabaseConsts.SCHEMA},
+        sqlalchemy.PrimaryKeyConstraint("billID", "drugID")
     )
 
     soldDate = sqlalchemy.Column(sqlalchemy.DATE)

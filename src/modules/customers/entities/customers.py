@@ -11,10 +11,8 @@ class Customer(Base):
         {"schema": DatabaseConsts.SCHEMA},
     )
 
-    id = sqlalchemy.Column(sqlalchemy.INT)
-    identityNumber = sqlalchemy.Column(sqlalchemy.VARCHAR())
+    id = sqlalchemy.Column(sqlalchemy.INT, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.VARCHAR())
-    address = sqlalchemy.Column(sqlalchemy.VARCHAR())
     phone = sqlalchemy.Column(sqlalchemy.VARCHAR())
     createdAt = sqlalchemy.Column(sqlalchemy.DateTime)
     updatedAt = sqlalchemy.Column(sqlalchemy.DateTime, default=text(f"SWITCHOFFSET(SYSUTCDATETIME(), '+07:00')"))

@@ -7,9 +7,9 @@ from sqlalchemy import select, text, values, update, delete
 from sqlalchemy.sql import Values
 from sqlalchemy.sql.elements import BinaryExpression
 
-from backend.db.backend_mssql_connector import backend_session_scope as session_scope
-from backend.modules.entities.entities.base_entities import Base
-from backend.utils.data_utils import DataUtils
+from src.db import backend_session_scope as session_scope
+from src.modules.base_entities import Base
+from src.utils.data_utils import DataUtils
 
 T = TypeVar("T")
 

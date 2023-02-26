@@ -3,3 +3,4 @@ class CommonMessage:
     SUCCESS = "success"
     BAD_REQUEST = "bad request"
     CREATED = "created"
+    INTERNAL_ERROR = "internal error"

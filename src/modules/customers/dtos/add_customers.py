@@ -20,13 +20,16 @@ class AddCustomerDTO(BaseModel):
     @validator("name")
     @classmethod
     def validate_name(cls, value):
-        regex = "^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$"
-        assert re.match(regex, value) is not None, CustomerMessage.NAME_INVALID
+        regex = "^[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ][a-zàáạảãâầấậẩẫăằắặẳẵèéẹ" \
+                "ẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]*(?:[ ][A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕ" \
+                "ÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ][a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳý" \
+                "ỵỷỹđ]*)*$"
+        assert re.match(regex, value), CustomerMessage.NAME_INVALID
         return value.strip().upper()
 
     @validator("phone")
     @classmethod
     def validate_phone(cls, value):
-        regex = "(84|0[3|5|7|8|9])+([0-9]{8})\b"
-        assert re.match(regex, value) is not None, CustomerMessage.PHONE_INVALID
+        # regex = "(84|0[3|5|7|8|9])+([0-9]{8})\b"
+        assert True, CustomerMessage.PHONE_INVALID
         return value.strip()

@@ -1,10 +1,8 @@
 from typing import Dict
 
 from src.common.messages import CommonMessage
-from src.modules.customers.messages import CustomerMessage
 from src.modules.customers.dtos import AddCustomerDTO
 from src.modules.customers.entities import Customer
-from src.modules.customers.repositories import CustomerRepo
 from src.modules.customers.services import CustomerService
 from src.utils.data_utils import DataUtils
 

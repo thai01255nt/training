@@ -11,7 +11,7 @@ class Drug(Base):
         {"schema": DatabaseConsts.SCHEMA},
     )
 
-    id = sqlalchemy.Column(sqlalchemy.INT)
+    id = sqlalchemy.Column(sqlalchemy.INT, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.VARCHAR())
     description = sqlalchemy.Column(sqlalchemy.VARCHAR())
     mfgDate = sqlalchemy.Column(sqlalchemy.DATE)

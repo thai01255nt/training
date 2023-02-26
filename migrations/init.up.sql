@@ -1,3 +1,5 @@
+-- step 1
+
 CREATE TABLE customers (
     id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
     name varchar(255) NOT NULL,
