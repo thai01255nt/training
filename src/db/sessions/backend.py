@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from typing import ContextManager
 
 from flask import session as flask_session
-from pyodbc import Connection
+from sqlalchemy.orm import Session
 
 from src.db.connectors import SQLServerConnectorPool
 from src.utils.logger import LOGGER
@@ -48,12 +48,12 @@ def get_session():
 
 
 @contextmanager
-def backend_session_scope() -> ContextManager[Connection]:
+def backend_session_scope() -> ContextManager[Session]:
     """
     Provide a transactional scope around a series of operations.
     Shouldn't keep session alive too long, it will block a connection of pool connections.
     """
-    session: Connection
+    session: Session
     reuse_session = get_session()
     if reuse_session is None:
         session = POOL.get()

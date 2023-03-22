@@ -1,7 +1,8 @@
-from typing import List, TypeVar, Generic, Dict, Union
+from typing import List, TypeVar, Generic, Dict, Union, Callable
 
 import numpy as np
 import pandas as pd
+from sqlalchemy.orm import Session
 
 from src.modules.base.query_builder import BaseQueryBuilder, TextSQL
 
@@ -11,7 +12,7 @@ T = TypeVar("T")
 class BaseRepo(Generic[T]):
     entity: T = None
     query_builder: BaseQueryBuilder = None
-    session_scope = None
+    session_scope: Callable[..., Session] = None
 
     @classmethod
     def row_factory(cls, cur) -> List[T]:
@@ -27,7 +28,7 @@ class BaseRepo(Generic[T]):
     def insert_many(cls, records: List[Dict], returning):
         with cls.session_scope() as session:
             insert_query = cls.query_builder.insert_many(records=records, returning=returning)
-            cur = session.execute(insert_query.sql, insert_query.params)
+            cur = session.connection().exec_driver_sql(insert_query.sql, insert_query.params).cursor
             return cls.row_factory(cur=cur)
 
     @classmethod
@@ -65,7 +66,7 @@ class BaseRepo(Generic[T]):
                 ) s
                 inner join {cls.entity.__table__.full_name} t on {sql_conditions}
             """
-            cur = session.execute(sql, query_values.params)
+            cur = session.connection().exec_driver_sql(sql, query_values.params).cursor
             results = cls.row_factory(cur=cur)
         return results
 
@@ -86,7 +87,7 @@ class BaseRepo(Generic[T]):
                 SELECT *
                 FROM %s
             """ % cls.entity.__table__.full_name
-            cur = session.execute(sql)
+            cur = session.connection().exec_driver_sql(sql).cursor
             results = cls.row_factory(cur=cur)
         return results
 
@@ -102,7 +103,7 @@ class BaseRepo(Generic[T]):
         sql_columns = ", ".join(f"[{col}]" for col in query_values.columns)
         params = records.values.tolist()
         with cls.session_scope() as session:
-            session.execute(
+            session.connection().exec_driver_sql(
                 f"""
                     IF OBJECT_ID('tempdb..[{temp_table}]') IS NULL
                     BEGIN
@@ -117,9 +118,7 @@ class BaseRepo(Generic[T]):
                 INSERT INTO {temp_table} ({sql_columns})
                 {query_values.sql}
             """
-            cur = session.cursor()
-            cur.fast_executemany = True
-            cur.executemany(sql, params)
+            cur = session.connection().exec_driver_sql(sql, params).cursor
             cur.close()
         return query_values
 
@@ -160,5 +159,5 @@ class BaseRepo(Generic[T]):
             list_sql += [sql_insert]
         sql = ";\n".join(list_sql)
         with cls.session_scope() as session:
-            session.execute(sql)
+            session.connection().exec_driver_sql(sql)
         return
