@@ -1,1 +1,0 @@
-from .drugs import Drug
