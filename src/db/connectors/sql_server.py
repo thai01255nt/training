@@ -4,6 +4,7 @@ from queue import Queue
 from threading import Semaphore
 
 from sqlalchemy import create_engine, QueuePool
+from sqlalchemy.orm import Session
 
 from src.utils.logger import LOGGER
 
@@ -31,7 +32,7 @@ class SQLServerConnectorPool:
             self.put(session)
             LOGGER.info("Successfully create connection...")
         except Exception as e:
-            LOGGER.error(f"Could not create connection to {dns}", e)
+            raise Exception(f"Could not create connection to {dns}", e)
             pass
 
     def __get_conn__(self):
@@ -39,7 +40,7 @@ class SQLServerConnectorPool:
         return c
 
     def get(self):
-        return self.engine.connect()
+        return Session(bind=self.engine.connect())
 
     @classmethod
     def put(cls, session):

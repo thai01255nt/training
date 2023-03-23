@@ -10,7 +10,8 @@ CREATE TABLE [dbo].[brokers](
 CREATE TABLE [dbo].[users](
     id BIGINT IDENTITY(1,1) NOT NULL,
 	userName [varchar](64) NOT NULL,
-	password [varchar](64) NOT NULL,
+	password [varchar](255) NOT NULL,
+	[role] [varchar](8) NOT NULL,
     [createdAt] DATETIME NOT NULL DEFAULT switchoffset(sysutcdatetime(),'+07:00'),
 	[updatedAt] DATETIME NOT NULL DEFAULT switchoffset(sysutcdatetime(),'+07:00'),
 	PRIMARY KEY CLUSTERED (id ASC),

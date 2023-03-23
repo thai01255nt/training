@@ -4,13 +4,14 @@ import numpy as np
 import pandas as pd
 from sqlalchemy.orm import Session
 
+from src.modules.base.entities import Base
 from src.modules.base.query_builder import BaseQueryBuilder, TextSQL
 
 T = TypeVar("T")
 
 
 class BaseRepo(Generic[T]):
-    entity: T = None
+    entity: Base = None
     query_builder: BaseQueryBuilder = None
     session_scope: Callable[..., Session] = None
 
@@ -28,7 +29,7 @@ class BaseRepo(Generic[T]):
     def insert_many(cls, records: List[Dict], returning):
         with cls.session_scope() as session:
             insert_query = cls.query_builder.insert_many(records=records, returning=returning)
-            cur = session.connection().exec_driver_sql(insert_query.sql, insert_query.params).cursor
+            cur = session.connection().exec_driver_sql(insert_query.sql, tuple(insert_query.params)).cursor
             return cls.row_factory(cur=cur)
 
     @classmethod
@@ -64,9 +65,9 @@ class BaseRepo(Generic[T]):
                         {query_values.sql}
                     ) _ ({sql_select_columns})
                 ) s
-                inner join {cls.entity.__table__.full_name} t on {sql_conditions}
+                inner join [{cls.entity.__table__.schema}].[{cls.entity.__tablename__}] t on {sql_conditions}
             """
-            cur = session.connection().exec_driver_sql(sql, query_values.params).cursor
+            cur = session.connection().exec_driver_sql(sql, tuple(query_values.params)).cursor
             results = cls.row_factory(cur=cur)
         return results
 
@@ -124,12 +125,12 @@ class BaseRepo(Generic[T]):
 
     @classmethod
     def upsert_from_source_table(
-        cls,
-        source_table,
-        identity_columns: List[str],
-        upsert_columns: List[str],
-        is_update=True,
-        is_insert=True
+            cls,
+            source_table,
+            identity_columns: List[str],
+            upsert_columns: List[str],
+            is_update=True,
+            is_insert=True
     ):
         sql_join_conditions = " AND ".join([f"t.[{col}] = s.[{col}]" for col in identity_columns])
         # sql update

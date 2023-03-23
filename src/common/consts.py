@@ -4,8 +4,6 @@ import os
 class CommonConsts:
     ROOT_FOLDER = os.path.abspath(os.path.join(os.path.abspath(__file__), 3 * "../"))
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-    MAX_EXPRESSIONS = int(os.environ["MAX_EXPRESSIONS"])
-    OS_DATE = "2021-01-01"
 
 
 class SQLServerConsts:
@@ -17,6 +15,7 @@ class SQLServerConsts:
 
 
 class MessageConsts:
+    CREATED = "Created"
     SUCCESS = "Success"
     VALIDATION_FAILED = "Validation failed"
     UNAUTHORIZED = "Unauthorized"
