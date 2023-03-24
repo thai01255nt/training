@@ -85,7 +85,7 @@ class RolePermission:
     def __init__(self, required_role_codes: list[str]) -> None:
         self.required_role_codes = required_role_codes
 
-    async def __call__(self, user: Annotated[dict, Depends(authentication)]) -> bool:
-        if user["roleCode"] not in self.required_role_codes:
+    async def __call__(self, jwt_payload: Annotated[dict, Depends(authentication)]) -> bool:
+        if jwt_payload["roleCode"] not in self.required_role_codes:
             raise BaseExceptionResponse(http_code=403, status_code=403, message=MessageConsts.FORBIDDEN)
         return True
