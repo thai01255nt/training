@@ -21,5 +21,6 @@ class User(Base):
     userName = sqlalchemy.Column(sqlalchemy.VARCHAR)
     password = sqlalchemy.Column(sqlalchemy.VARCHAR)
     role = sqlalchemy.Column(sqlalchemy.VARCHAR)
+    adminBrokerID = sqlalchemy.Column(sqlalchemy.BIGINT)
     createdAt = sqlalchemy.Column(sqlalchemy.DATETIME)
     updatedAt = sqlalchemy.Column(sqlalchemy.DATETIME)

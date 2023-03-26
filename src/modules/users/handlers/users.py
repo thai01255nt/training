@@ -4,7 +4,7 @@ from starlette.responses import JSONResponse
 from src.common.consts import MessageConsts
 from src.common.responses import SuccessResponse
 from src.modules.auth.consts import AuthConsts
-from src.modules.auth.dependencies import authentication, RolePermission
+from src.modules.auth.dependencies import authentication, RoleCodePermission
 from src.modules.users.dtos import UserResponseDTO, AddUserPayloadDTO
 from src.modules.users.entities import User
 from src.modules.users.entities.users import RoleEnum
@@ -21,7 +21,7 @@ USER_SERVICE = UserService()
     dependencies=[
         Depends(authentication),
         Depends(
-            RolePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
+            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
         )
     ]
 )

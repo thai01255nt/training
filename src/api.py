@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 from src.common.consts import MessageConsts
 from src.modules.auth.handlers import auth_router
 from src.modules.base.dto import BaseDTO
+from src.modules.clients.handlers import client_router
 from src.modules.users.handlers import user_router
 
 
@@ -29,8 +30,9 @@ api_router = APIRouter(
     },
 )
 
-api_router.include_router(auth_router, tags=["auth"])
-api_router.include_router(user_router, tags=["users"])
+api_router.include_router(auth_router, prefix="", tags=["auth"])
+api_router.include_router(user_router, prefix="/users", tags=["users"])
+api_router.include_router(client_router, prefix="/clients", tags=["clients"])
 
 
 @api_router.get("/healthcheck", include_in_schema=False)

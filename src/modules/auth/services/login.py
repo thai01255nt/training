@@ -1,13 +1,9 @@
 import datetime
-from urllib.request import Request
 
-from src.common.consts import MessageConsts
-from src.common.responses.exceptions import BaseExceptionResponse
 from src.modules.auth.consts import AuthConsts
 from src.modules.auth.jwt_utils import JWTUtils
-from src.modules.auth.repositories import UserRepo
+from src.modules.users.repositories import UserRepo
 from src.modules.users.entities import User
-from src.modules.users.entities.users import RoleEnum
 
 
 class LoginService:
@@ -21,7 +17,7 @@ class LoginService:
         data = {
             "userName": user[User.userName.name],
             "exp": exp,
-            "roleCode": AuthConsts.ROLE_CODE[user[User.role.name]]
+            "roleCode": AuthConsts.ROLE_CODE[user[User.role.name]],
+            "adminBrokerID": user[User.adminBrokerID.name],
         }
         return JWTUtils.encode(payload=data)
-

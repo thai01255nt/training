@@ -1,6 +1,6 @@
 from src.common.consts import MessageConsts
 from src.common.responses.exceptions import BaseExceptionResponse
-from src.modules.auth.repositories import UserRepo
+from src.modules.users.repositories import UserRepo
 from src.modules.users.dtos import AddUserPayloadDTO
 from src.modules.users.entities.users import RoleEnum, User
 from src.utils.security import Security

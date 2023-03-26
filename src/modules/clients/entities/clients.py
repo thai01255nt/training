@@ -12,7 +12,7 @@ class Client(Base):
 
     id = sqlalchemy.Column(sqlalchemy.VARCHAR, primary_key=True)
     brokerID = sqlalchemy.Column(sqlalchemy.BIGINT)
-    username = sqlalchemy.Column(sqlalchemy.VARCHAR)
+    owner = sqlalchemy.Column(sqlalchemy.VARCHAR)
     fee = sqlalchemy.Column(sqlalchemy.FLOAT)
     createdAt = sqlalchemy.Column(sqlalchemy.DATETIME)
     updatedAt = sqlalchemy.Column(sqlalchemy.DATETIME)
