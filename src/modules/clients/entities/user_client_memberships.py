@@ -1,7 +1,14 @@
+from enum import Enum
+
 import sqlalchemy
 
 from src.common.consts import SQLServerConsts
 from src.modules.base.entities import Base
+
+
+class UCMRoleEnum(Enum):
+    ADMIN = "admin"
+    MEMBER = "member"
 
 
 class UserClientMembership(Base):
@@ -13,7 +20,6 @@ class UserClientMembership(Base):
     id = sqlalchemy.Column(sqlalchemy.BIGINT, primary_key=True)
     userID = sqlalchemy.Column(sqlalchemy.BIGINT)
     clientID = sqlalchemy.Column(sqlalchemy.VARCHAR)
-    permission = sqlalchemy.Column(sqlalchemy.VARCHAR)
     role = sqlalchemy.Column(sqlalchemy.VARCHAR)
     createdAt = sqlalchemy.Column(sqlalchemy.DATETIME)
     updatedAt = sqlalchemy.Column(sqlalchemy.DATETIME)

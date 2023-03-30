@@ -14,6 +14,7 @@ EMAIL_REGEX = re.compile(
     """(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"""
     """.{,64}$"""
 )
+NAME_REGEX = re.compile("""^[A-Za-z]+((\s)?([A-Za-z])+)*$""")
 
 
 class Validator:
@@ -76,4 +77,8 @@ class Validator:
         """
         RFC 5322 compliant regex
         """
-        assert EMAIL_REGEX.match(value), "Must must be an email and has maximum 64 in length"
+        assert EMAIL_REGEX.match(value), "Must be an email and has maximum 64 in length"
+
+    @staticmethod
+    def validate_name(value):
+        assert NAME_REGEX.match(value), "Must only has a-z, A-Z, and space characters"

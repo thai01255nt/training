@@ -18,7 +18,9 @@ class AddClientPayloadDTO(BaseDTO):
         return v
 
     @validator("owner")
-    def validate_owner(cls, v):
+    def validate_owner(cls, v: str):
+        v = v.strip()
+        Validator.validate_name(value=v)
         assert len(v) <= 64, "Must be <= 64 in length"
         return v
 

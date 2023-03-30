@@ -5,6 +5,7 @@ from fastapi.security import HTTPBearer
 from src.common.consts import MessageConsts
 from src.common.responses.exceptions import BaseExceptionResponse
 from src.modules.auth.consts import AuthConsts
+from src.modules.auth.dtos import TokenPayloadDTO
 from src.modules.auth.jwt_utils import JWTUtils
 from src.modules.users.repositories import UserRepo
 from src.modules.users.entities import User
@@ -25,8 +26,8 @@ class Authentication(HTTPBearer):
         is_success, payload = JWTUtils.decode_jwt_token(encode_string=token)
         if not is_success:
             raise BaseExceptionResponse(http_code=403, status_code=403, message="Invalid token")
-        if payload["roleCode"] == AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]:
-            user = UserRepo.get_by_username(username=payload[User.userName.name])
+        if payload['roleCode'] == AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]:
+            user = UserRepo.get_by_username(username=payload['userName'])
             if user[0][User.role.name] != RoleEnum.ADMIN.value:
                 raise BaseExceptionResponse(http_code=403, status_code=403, message="fake admin role")
         return payload
@@ -40,7 +41,7 @@ class RoleCodePermission:
     def __init__(self, required_role_codes: list[str]) -> None:
         self.required_role_codes = required_role_codes
 
-    async def __call__(self, jwt_payload: Annotated[dict, Depends(authentication)]) -> bool:
-        if jwt_payload["roleCode"] not in self.required_role_codes:
+    async def __call__(self, jwt_payload: Annotated[TokenPayloadDTO, Depends(authentication)]) -> bool:
+        if jwt_payload['roleCode'] not in self.required_role_codes:
             raise BaseExceptionResponse(http_code=403, status_code=403, message=MessageConsts.FORBIDDEN)
         return True

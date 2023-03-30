@@ -78,6 +78,6 @@ class BaseQueryBuilder:
                 sql.append("%s[%s] = ?" % (alias, field))
                 params.append(value)
         if len(sql) == 0:
-            return "", []
+            return QueryProduct(sql="", params=[], columns=None)
         sql = " AND ".join(sql)
         return QueryProduct(sql=sql, params=params, columns=None)

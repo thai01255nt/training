@@ -35,7 +35,6 @@ CREATE TABLE [dbo].[userClientMemberships](
     [id] [varchar](64) NOT NULL,
 	[userID] BIGINT NOT NULL,
 	[clientID] [varchar](64) NOT NULL,
-	[permission] [varchar](10) NOT NULL,
     [role] [varchar](10) NOT NULL,
     [createdAt] DATETIME NOT NULL DEFAULT switchoffset(sysutcdatetime(),'+07:00'),
 	[updatedAt] DATETIME NOT NULL DEFAULT switchoffset(sysutcdatetime(),'+07:00'),

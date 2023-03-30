@@ -87,7 +87,7 @@ class BaseRepo(Generic[T]):
             sql = """
                 SELECT *
                 FROM %s
-            """ % cls.entity.__table__.full_name
+            """ % cls.query_builder.full_table_name
             cur = session.connection().exec_driver_sql(sql).cursor
             results = cls.row_factory(cur=cur)
         return results
@@ -162,3 +162,17 @@ class BaseRepo(Generic[T]):
         with cls.session_scope() as session:
             session.connection().exec_driver_sql(sql)
         return
+
+    @classmethod
+    def get_by_id(cls, _id: int):
+        condition_query = cls.query_builder.where({cls.entity.id: _id})
+        sql = """
+            SELECT *
+            FROM
+            %s
+            WHERE %s
+        """ % (cls.query_builder.full_table_name, condition_query.sql)
+        with cls.session_scope() as session:
+            cur = session.connection().exec_driver_sql(sql, condition_query.params).cursor
+            records = cls.row_factory(cur=cur)
+            return records

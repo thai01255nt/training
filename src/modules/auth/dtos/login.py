@@ -29,3 +29,10 @@ class LoginPayloadDTO(BaseDTO):
 
 class LoginResponseDTO(TypedDict):
     token: str
+
+
+class TokenPayloadDTO(TypedDict, total=False):
+    userName: str
+    exp: int
+    roleCode: int
+    adminBrokerID: int
