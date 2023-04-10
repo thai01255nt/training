@@ -1,7 +1,7 @@
 ARG PYTHON_VERSION=3.9.7
 FROM python:$PYTHON_VERSION
 
-ENV BASE_DIR=pipeline
+ENV BASE_DIR=stock
 
 RUN echo "Installing system deps" \
     && apt-get update \
@@ -35,6 +35,4 @@ ADD ./src ./src
 ADD ./.env ./.env
 ADD ./server.py ./server.py
 
-# Run server
-COPY ./server.py ./server.py
 CMD ["python3", "server.py"]
