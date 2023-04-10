@@ -11,6 +11,6 @@ class Broker(Base):
     )
 
     id = sqlalchemy.Column(sqlalchemy.BIGINT, primary_key=True)
-    brokerName = sqlalchemy.Column(sqlalchemy.VARCHAR)
+    brokerName = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
     createdAt = sqlalchemy.Column(sqlalchemy.DATETIME)
     updatedAt = sqlalchemy.Column(sqlalchemy.DATETIME)

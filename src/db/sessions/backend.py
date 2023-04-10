@@ -2,15 +2,15 @@ import os
 import threading
 from contextlib import contextmanager
 from typing import ContextManager
+import uuid
 
-from flask import session as flask_session
 from sqlalchemy.orm import Session
 
-from src.db.connectors import SQLServerConnectorPool
+from src.db.connectors import CONTEXTVAR, SQLServerConnectorPool
 from src.utils.logger import LOGGER
 
 PREFIX = "BACKEND"
-LOCAL_SESSION = {}
+SESSIONS = {}
 DNS = os.environ.get(f"{PREFIX}_DNS", None)
 MIN_CONN = 2
 MAX_CONN = 4
@@ -18,33 +18,22 @@ MAX_CONN = 4
 POOL = SQLServerConnectorPool(dns=DNS, max_conn=MAX_CONN, min_conn=MIN_CONN)
 
 
-def get_unique_thread_key():
-    thread_id = threading.get_ident()
-    process_id = os.getpid()
-    unique_thread_key = str(process_id) + "-" + str(thread_id)
-    return unique_thread_key
-
-
 def set_session(session):
-    try:
-        flask_session[f"{PREFIX}_SESSION"] = session
-    except:
-        global LOCAL_SESSION
-        if session is None:
-            try:
-                LOCAL_SESSION.pop(get_unique_thread_key())
-            except:
-                pass
-        else:
-            LOCAL_SESSION[get_unique_thread_key()] = session
+    global SESSIONS
+    context_id = CONTEXTVAR.get()
+    if session is None:
+        del SESSIONS[context_id]
+        return
+    if context_id is None:
+        context_id = uuid.uuid4()
+    CONTEXTVAR.set(context_id)
+    SESSIONS[context_id] = session
 
 
 def get_session():
-    try:
-        return flask_session[f"{PREFIX}_SESSION"]
-    except:
-        global LOCAL_SESSION
-        return LOCAL_SESSION.get(get_unique_thread_key(), None)
+    global SESSIONS
+    context_id = CONTEXTVAR.get()
+    return SESSIONS.get(context_id, None)
 
 
 @contextmanager

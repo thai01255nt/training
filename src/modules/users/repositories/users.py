@@ -13,7 +13,7 @@ class UserRepo(BaseRepo):
 
     @classmethod
     def get_by_username(cls, username: str):
-        sql = select("*").where(cls.entity.userName == username)
+        sql = select(User).where(cls.entity.userName == username)
         with cls.session_scope() as session:
             cur = session.connection().execute(sql).cursor
             return cls.row_factory(cur=cur)

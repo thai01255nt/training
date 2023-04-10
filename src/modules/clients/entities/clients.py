@@ -10,9 +10,9 @@ class Client(Base):
         {"schema": SQLServerConsts.SCHEMA},
     )
 
-    id = sqlalchemy.Column(sqlalchemy.VARCHAR, primary_key=True)
+    id = sqlalchemy.Column(sqlalchemy.VARCHAR(0), primary_key=True)
     brokerID = sqlalchemy.Column(sqlalchemy.BIGINT)
-    owner = sqlalchemy.Column(sqlalchemy.VARCHAR)
+    owner = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
     fee = sqlalchemy.Column(sqlalchemy.FLOAT)
     createdAt = sqlalchemy.Column(sqlalchemy.DATETIME)
     updatedAt = sqlalchemy.Column(sqlalchemy.DATETIME)
