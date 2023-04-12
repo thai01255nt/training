@@ -25,7 +25,7 @@ class ClientService:
                 errors={"brokerID": ["brokerID is not exists"]}
             )
         with self.client_repo.session_scope():
-            data = payload.dict()
+            data = payload.dict(exclude_unset=True)
             client = self.client_repo.insert(record=data, returning=True)
             ucm = {
                 UserClientMembership.userID.name: user[User.id.name],
