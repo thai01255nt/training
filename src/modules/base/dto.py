@@ -23,3 +23,6 @@ class BaseDTO(BaseModel):
         #     # uuid.UUID: lambda v: v.__str__() if v else None,
         #     # SecretStr: lambda v: v.get_secret_value() if v else None,
         # }
+        
+    def dict(self, *args, **kwargs):
+        return super().dict(*args, **kwargs, exclude_unset=True)
