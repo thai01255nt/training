@@ -24,5 +24,5 @@ class BaseDTO(BaseModel):
         #     # SecretStr: lambda v: v.get_secret_value() if v else None,
         # }
         
-    def dict(self, *args, **kwargs):
-        return super().dict(*args, **kwargs, exclude_unset=True)
+    def dict(exclude_unset=True):
+        return super().dict(exclude_unset=exclude_unset)
