@@ -42,6 +42,6 @@ class UserService:
                     errors={"brokerID": ["brokerID is not exists"]}
                 )
         payload.password = Security.encrypt(payload.password)
-        data = payload.dict()
+        data = payload.dict(exclude_unset=True)
         data[User.role.name] = RoleEnum.TRADER.value
         return self.user_repo.insert(record=data, returning=True)
