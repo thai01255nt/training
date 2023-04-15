@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from src.api import api_router
-from src.common.consts import MessageConsts
+from src.common.consts import MessageConsts, CommonConsts
 from src.common.responses.exceptions import BaseExceptionResponse
 from src.utils.logger import LOGGER
 
@@ -15,9 +15,9 @@ app = FastAPI(
     title="training",
     description="Welcome to API documentation",
     # root_path="/api/v1",
-    # docs_url=None,
+    docs_url="/docs" if CommonConsts.DEBUG else None,
     # openapi_url="/docs/openapi.json",
-    redoc_url="/docs",
+    redoc_url="/docs" if CommonConsts.DEBUG else None,
 )
 app.add_middleware(
     CORSMiddleware,
@@ -56,7 +56,7 @@ async def exception_handler(request: Request, exception):
         error_response = exception.to_dict()
     else:
         errors = (
-            None if not os.environ["DEBUG"] else {"key": MessageConsts.INTERNAL_SERVER_ERROR, "message": str(exception)}
+            None if not CommonConsts.DEBUG else {"key": MessageConsts.INTERNAL_SERVER_ERROR, "message": str(exception)}
         )
         exception = BaseExceptionResponse(
             http_code=500,

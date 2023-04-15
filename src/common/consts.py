@@ -4,6 +4,7 @@ import os
 class CommonConsts:
     ROOT_FOLDER = os.path.abspath(os.path.join(os.path.abspath(__file__), 3 * "../"))
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+    DEBUG = int(os.environ["DEBUG"])
 
 
 class SQLServerConsts:
