@@ -9,7 +9,7 @@ CREATE TABLE [dbo].[brokers](
 
 CREATE TABLE [dbo].[users](
     [id] BIGINT IDENTITY(1,1) NOT NULL,
-	[userName] [varchar](64) NOT NULL,
+	[email] [varchar](64) NOT NULL,
 	[password] [varchar](255) NOT NULL,
 	[role] [varchar](8) NOT NULL,
 	[adminBrokerID] BIGINT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE [dbo].[users](
 	PRIMARY KEY CLUSTERED (id ASC),
 	FOREIGN KEY (adminBrokerID) REFERENCES brokers(id) ON DELETE NO ACTION,
 )
-CREATE UNIQUE NONCLUSTERED INDEX uidx_u ON [dbo].[users] (userName ASC);
+CREATE UNIQUE NONCLUSTERED INDEX uidx_u ON [dbo].[users] (email ASC);
 
 CREATE TABLE [dbo].[clients](
     [id] [varchar](64) NOT NULL,

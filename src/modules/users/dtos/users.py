@@ -8,11 +8,11 @@ from src.utils.validator import Validator
 
 
 class AddUserPayloadDTO(BaseDTO):
-    userName: str
+    email: str
     password: str
     adminBrokerID: Optional[int]
 
-    @validator("userName", "password")
+    @validator("email", "password")
     def validate_not_none(cls, v):
         Validator.validate_not_none(value=v)
         return v
@@ -22,8 +22,8 @@ class AddUserPayloadDTO(BaseDTO):
         Validator.validate_password(value=v)
         return v
 
-    @validator("userName")
-    def validate_user_name(cls, v: str):
+    @validator("email")
+    def validate_email(cls, v: str):
         v = v.strip()
         Validator.validate_email(value=v)
         return v
@@ -31,7 +31,7 @@ class AddUserPayloadDTO(BaseDTO):
 
 class UserResponseDTO(TypedDict):
     id: int
-    userName: str
+    email: str
     role: str
     createdAt: datetime.datetime
     updatedAt: datetime.datetime

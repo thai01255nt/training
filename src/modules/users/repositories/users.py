@@ -12,8 +12,8 @@ class UserRepo(BaseRepo):
     session_scope = backend_session_scope
 
     @classmethod
-    def get_by_username(cls, username: str):
-        sql = select(User).where(cls.entity.userName == username)
+    def get_by_email(cls, email: str):
+        sql = select(User).where(cls.entity.email == email)
         with cls.session_scope() as session:
             cur = session.connection().execute(sql).cursor
             return cls.row_factory(cur=cur)

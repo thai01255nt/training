@@ -18,7 +18,7 @@ class User(Base):
     )
 
     id = sqlalchemy.Column(sqlalchemy.BIGINT, primary_key=True)
-    userName = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
+    email = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
     password = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
     role = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
     adminBrokerID = sqlalchemy.Column(sqlalchemy.BIGINT)

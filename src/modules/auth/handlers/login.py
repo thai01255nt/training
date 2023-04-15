@@ -17,7 +17,7 @@ USER_SERVICE = UserService()
 
 @auth_router.post("/login", response_model=LoginResponseDTO)
 def login_user(payload: LoginPayloadDTO):
-    user = USER_SERVICE.get_by_username(username=payload.userName)
+    user = USER_SERVICE.get_by_email(email=payload.email)
     decrypted_password = Security.decrypt(user[User.password.name])
     if decrypted_password == payload.password:
         token = LOGIN_SERVICE.generate_jwt_token(user=user)

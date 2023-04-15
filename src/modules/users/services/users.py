@@ -12,25 +12,25 @@ class UserService:
         self.user_repo = UserRepo
         self.broker_repo = BrokerRepo
 
-    def get_by_username(self, username: str):
-        records = self.user_repo.get_by_username(username=username)
+    def get_by_email(self, email: str):
+        records = self.user_repo.get_by_email(email=email)
         if len(records) == 0:
             raise BaseExceptionResponse(
                 http_code=400,
                 status_code=400,
                 message=MessageConsts.BAD_REQUEST,
-                errors={"userName": ["userName not exists"]}
+                errors={"email": ["email not exists"]}
             )
         return records[0]
 
     def add_user(self, payload: AddUserPayloadDTO):
-        records = self.user_repo.get_by_username(username=payload.userName)
+        records = self.user_repo.get_by_email(email=payload.email)
         if len(records) != 0:
             raise BaseExceptionResponse(
                 http_code=400,
                 status_code=400,
                 message=MessageConsts.BAD_REQUEST,
-                errors={"userName": ["userName is exists"]}
+                errors={"email": ["email is exists"]}
             )
         if payload.adminBrokerID is not None:
             brokers = self.broker_repo.get_by_id(_id=payload.adminBrokerID)

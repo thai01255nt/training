@@ -27,7 +27,7 @@ class Authentication(HTTPBearer):
         if not is_success:
             raise BaseExceptionResponse(http_code=403, status_code=403, message="Invalid token")
         if payload['roleCode'] == AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]:
-            user = UserRepo.get_by_username(username=payload['userName'])
+            user = UserRepo.get_by_email(email=payload['email'])
             if user[0][User.role.name] != RoleEnum.ADMIN.value:
                 raise BaseExceptionResponse(http_code=403, status_code=403, message="fake admin role")
         return payload

@@ -25,7 +25,7 @@ USER_SERVICE = UserService()
     ]
 )
 def add_client(payload: AddClientPayloadDTO, current_user: Annotated[TokenPayloadDTO, Depends(authentication)]):
-    user = USER_SERVICE.get_by_username(username=current_user['userName'])[0]
+    user = USER_SERVICE.get_by_email(email=current_user['email'])[0]
     record = CLIENT_SERVICE.add_client(user=user, payload=payload)
     response = SuccessResponse(
         http_code=201,

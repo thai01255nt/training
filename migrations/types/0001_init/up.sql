@@ -7,7 +7,7 @@ CREATE TYPE [dbo].[brokers] AS TABLE(
 
 CREATE TYPE [dbo].[users] AS TABLE(
     [id] BIGINT NULL,
-	[userName] [varchar](64) NULL,
+	[email] [varchar](64) NULL,
 	[password] [varchar](255) NULL,
 	[role] [varchar](8) NULL,
 	[adminBrokerID] BIGINT NULL,

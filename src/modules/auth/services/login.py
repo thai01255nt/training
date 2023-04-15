@@ -17,7 +17,7 @@ class LoginService:
         now = TimeUtils.get_current_vn_time()
         exp = int((now + datetime.timedelta(seconds=AuthConsts.TOKEN_EXPIRE_TIME)).timestamp())
         data: TokenPayloadDTO = {
-            "userName": user[User.userName.name],
+            "email": user[User.email.name],
             "exp": exp,
             "roleCode": AuthConsts.ROLE_CODE[user[User.role.name]],
             "adminBrokerID": user[User.adminBrokerID.name],
