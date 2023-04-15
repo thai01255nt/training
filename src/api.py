@@ -23,7 +23,7 @@ class ErrorResponseModel(BaseDTO):
 api_router = APIRouter(
     default_response_class=JSONResponse,
     responses={
-        400: {"model": ErrorResponseModel},
+        # 400: {"model": ErrorResponseModel},
         401: {"model": ErrorResponseModel},
         422: {"model": ErrorResponseModel},
         500: {"model": ErrorResponseModel},

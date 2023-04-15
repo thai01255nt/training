@@ -15,6 +15,14 @@ class LoginPayloadDTO(BaseDTO):
         Validator.validate_not_none(value=v)
         return v
 
+    @validator("password")
+    def validate_password(cls, v: str):
+        try:
+            Validator.validate_password(value=v)
+        except:
+            assert False, "invalid password"
+        return v
+
     @validator("email")
     def validate_user_name(cls, v: str):
         v = v.strip()

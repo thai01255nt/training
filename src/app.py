@@ -19,12 +19,12 @@ app = FastAPI(
     # openapi_url="/docs/openapi.json",
     redoc_url="/docs" if CommonConsts.DEBUG else None,
 )
-app.add_middleware(
-    CORSMiddleware,
+cors = CORSMiddleware(
+    app,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 

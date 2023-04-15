@@ -17,8 +17,8 @@ class Authentication(HTTPBearer):
         token = request.headers.get("Authorization", None)
         if token is None:
             raise BaseExceptionResponse(
-                http_code=401,
-                status_code=401,
+                http_code=400,
+                status_code=400,
                 message=MessageConsts.UNAUTHORIZED,
                 errors={"token": ["missing token in headers"]}
             )
