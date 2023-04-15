@@ -17,7 +17,10 @@ class LoginPayloadDTO(BaseDTO):
 
     @validator("password")
     def validate_password(cls, v: str):
-        Validator.validate_password(value=v)
+        try:
+            Validator.validate_password(value=v)
+        except:
+            assert False, "invalid password"
         return v
 
     @validator("email")
