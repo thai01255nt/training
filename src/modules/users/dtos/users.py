@@ -10,7 +10,7 @@ from src.utils.validator import Validator
 class AddUserPayloadDTO(BaseDTO):
     email: str
     password: str
-    adminBrokerID: Optional[int]
+    adminNameBroker: Optional[int]
 
     @validator("email", "password")
     def validate_not_none(cls, v):

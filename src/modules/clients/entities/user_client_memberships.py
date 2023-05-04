@@ -19,7 +19,7 @@ class UserClientMembership(Base):
 
     id = sqlalchemy.Column(sqlalchemy.BIGINT, primary_key=True)
     userID = sqlalchemy.Column(sqlalchemy.BIGINT)
-    clientID = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
+    idClient = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
     role = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
     createdAt = sqlalchemy.Column(sqlalchemy.DATETIME)
     updatedAt = sqlalchemy.Column(sqlalchemy.DATETIME)

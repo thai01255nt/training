@@ -8,4 +8,3 @@ class BrokerRepo(BaseRepo):
     entity = Broker
     query_builder = BaseQueryBuilder(entity=entity)
     session_scope = backend_session_scope
-

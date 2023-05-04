@@ -6,17 +6,18 @@ from sqlalchemy.orm import Session
 
 from src.modules.base.entities import Base
 from src.modules.base.query_builder import BaseQueryBuilder, TextSQL
+from src.utils.logger import LOGGER
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Base)
 
 
 class BaseRepo(Generic[T]):
-    entity: Base = None
-    query_builder: BaseQueryBuilder = None
-    session_scope: Callable[..., Session] = None
+    entity: T
+    query_builder: BaseQueryBuilder
+    session_scope: Callable[..., Session]
 
     @classmethod
-    def row_factory(cls, cur) -> List[T]:
+    def row_factory(cls, cur) -> List[Dict]:
         if cur.description is None:
             return []
         columns = [column[0] for column in cur.description]
@@ -33,7 +34,7 @@ class BaseRepo(Generic[T]):
             return cls.row_factory(cur=cur)
 
     @classmethod
-    def insert(cls, record: Dict, returning) -> T:
+    def insert(cls, record: Dict, returning) -> Dict:
         results = cls.insert_many(records=[record], returning=returning)
         if returning:
             return results[0]
@@ -65,7 +66,7 @@ class BaseRepo(Generic[T]):
                         {query_values.sql}
                     ) _ ({sql_select_columns})
                 ) s
-                inner join [{cls.entity.__table__.schema}].[{cls.entity.__tablename__}] t on {sql_conditions}
+                inner join {cls.query_builder.full_table_name} t on {sql_conditions}
             """
             cur = session.connection().exec_driver_sql(sql, tuple(query_values.params)).cursor
             results = cls.row_factory(cur=cur)
@@ -82,7 +83,7 @@ class BaseRepo(Generic[T]):
             return None
 
     @classmethod
-    def get_all(cls) -> List[T]:
+    def get_all(cls) -> List[Dict]:
         with cls.session_scope() as session:
             sql = """
                 SELECT *
@@ -106,11 +107,11 @@ class BaseRepo(Generic[T]):
         with cls.session_scope() as session:
             session.connection().exec_driver_sql(
                 f"""
-                    IF OBJECT_ID('tempdb..[{temp_table}]') IS NULL
+                    IF OBJECT_ID('tempdb..{temp_table}') IS NULL
                     BEGIN
                         declare @temp {cls.entity.__sqlServerType__}
                         select *
-                        into [{temp_table}]
+                        into {temp_table}
                         from @temp
                     END
                 """
@@ -119,8 +120,8 @@ class BaseRepo(Generic[T]):
                 INSERT INTO {temp_table} ({sql_columns})
                 {query_values.sql}
             """
-            cur = session.connection().exec_driver_sql(sql, params).cursor
-            cur.close()
+            for i in range(0, len(params), 10000):
+                session.connection().exec_driver_sql(sql, tuple(params[i:i+10000]))
         return query_values
 
     @classmethod
@@ -138,21 +139,21 @@ class BaseRepo(Generic[T]):
         sql_update = f"""
             UPDATE t
             SET {sql_set_columns}
-            FROM {cls.entity.__table__.full_name} t
-            JOIN [{source_table}] s ON {sql_join_conditions}
+            FROM {cls.query_builder.full_table_name} t
+            JOIN {source_table} s ON {sql_join_conditions}
         """
         # sql insert
         sql_select_columns = ", ".join(f"s.[{col}]" for col in upsert_columns)
         sql_insert_columns = ", ".join(f"[{col}]" for col in upsert_columns)
         sql_insert_conditions = " or ".join([f"t.[{col}] is null" for col in identity_columns])
         sql_insert_conditions = f"""
-            LEFT JOIN {cls.entity.__table__.full_name} t ON {sql_join_conditions}
+            LEFT JOIN {cls.query_builder.full_table_name} t ON {sql_join_conditions}
             WHERE {sql_insert_conditions}
         """ if identity_columns else ""
         sql_insert = f"""
-            INSERT INTO {cls.entity.__table__.full_name} ({sql_insert_columns})
+            INSERT INTO {cls.query_builder.full_table_name} ({sql_insert_columns})
             SELECT {sql_select_columns}
-            FROM [{source_table}] s
+            FROM {source_table} s
             {sql_insert_conditions}
         """
         list_sql = [sql_update] if is_update and len(identity_columns) != 0 else []
@@ -165,7 +166,11 @@ class BaseRepo(Generic[T]):
 
     @classmethod
     def get_by_id(cls, _id: int):
-        condition_query = cls.query_builder.where({cls.entity.id: _id})
+        return cls.get_by_condition({cls.entity.id.name: _id})
+
+    @classmethod
+    def get_by_condition(cls, conditions: Dict):
+        condition_query = cls.query_builder.where(conditions)
         sql = """
             SELECT *
             FROM

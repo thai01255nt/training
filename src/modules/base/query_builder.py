@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -13,9 +13,9 @@ class TextSQL:
 
 class QueryProduct:
     def __init__(self, sql, params, columns):
-        self.sql = sql
-        self.params = params
-        self.columns = columns
+        self.sql: str = sql
+        self.params: Union[Tuple, List] = params
+        self.columns: List[str] = columns
 
 
 class BaseQueryBuilder:

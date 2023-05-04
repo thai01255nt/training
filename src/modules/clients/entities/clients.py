@@ -5,14 +5,15 @@ from src.modules.base.entities import Base
 
 
 class Client(Base):
-    __tablename__ = "clients"
+    __tablename__ = "client"
     __table_args__ = (
         {"schema": SQLServerConsts.SCHEMA},
     )
 
     id = sqlalchemy.Column(sqlalchemy.VARCHAR(0), primary_key=True)
-    brokerID = sqlalchemy.Column(sqlalchemy.BIGINT)
-    owner = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
-    fee = sqlalchemy.Column(sqlalchemy.FLOAT)
-    createdAt = sqlalchemy.Column(sqlalchemy.DATETIME)
-    updatedAt = sqlalchemy.Column(sqlalchemy.DATETIME)
+    nameBroker = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
+    idClient = sqlalchemy.Column(sqlalchemy.VARCHAR(0))
+    nameClient = sqlalchemy.Column(sqlalchemy.FLOAT)
+    interestRate = sqlalchemy.Column(sqlalchemy.FLOAT)
+    costBuy = sqlalchemy.Column(sqlalchemy.FLOAT)
+    costSell = sqlalchemy.Column(sqlalchemy.FLOAT)

@@ -18,8 +18,8 @@ class BaseResponse:
 
     def to_dict(self) -> Dict:
         result = {"statusCode": self.status_code, "message": self.message}
-        if self.data:
+        if self.data is not None:
             result["data"] = self.data
-        if self.errors:
+        if self.errors is not None:
             result["errors"] = self.errors
         return result

@@ -35,7 +35,8 @@ class LoginResponseDTO(TypedDict):
 
 
 class TokenPayloadDTO(TypedDict, total=False):
+    id: int
     email: str
     exp: int
     roleCode: int
-    adminBrokerID: int
+    adminNameBroker: str

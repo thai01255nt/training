@@ -1,4 +1,5 @@
 from src.db.sessions import backend_session_scope
+from src.modules.auth.dtos.login import TokenPayloadDTO
 from src.modules.base.query_builder import BaseQueryBuilder
 from src.modules.base.repositories import BaseRepo
 from src.modules.clients.entities import Client

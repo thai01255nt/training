@@ -1,12 +1,8 @@
 from src.common.consts import MessageConsts
 from src.common.responses.exceptions import BaseExceptionResponse
 from src.modules.auth.dtos import TokenPayloadDTO
-from src.modules.brokers.entities import Broker
 from src.modules.brokers.repositories import BrokerRepo
-from src.modules.clients.dtos import AddClientPayloadDTO
-from src.modules.clients.entities import UserClientMembership, Client, UCMRoleEnum
 from src.modules.clients.repositories import ClientRepo, UserClientMembershipRepo
-from src.modules.users.entities import User
 
 
 class ClientService:
@@ -15,23 +11,28 @@ class ClientService:
         self.broker_repo = BrokerRepo
         self.user_client_membership_repo = UserClientMembershipRepo
 
-    def add_client(self, user: dict, payload: AddClientPayloadDTO):
-        brokers = self.broker_repo.get_by_id(_id=payload.brokerID)
-        if len(brokers) == 0:
-            raise BaseExceptionResponse(
-                http_code=400,
-                status_code=400,
-                message=MessageConsts.BAD_REQUEST,
-                errors={"brokerID": ["brokerID is not exists"]}
-            )
-        with self.client_repo.session_scope():
-            data = payload.dict()
-            client = self.client_repo.insert(record=data, returning=True)
-            ucm = {
-                UserClientMembership.userID.name: user[User.id.name],
-                UserClientMembership.clientID.name: client[Client.id.name],
-                UserClientMembership.role.name: UCMRoleEnum.ADMIN.value,
-            }
-            self.user_client_membership_repo.insert(record=ucm, returning=False)
-            self.user_client_membership_repo.add_admin_membership(client=client, user=user)
-        return client
+    # def add_client(self, current_user: TokenPayloadDTO, payload: AddClientPayloadDTO):
+    #     brokers = self.broker_repo.get_by_id(_id=payload.brokerID)
+    #     if len(brokers) == 0:
+    #         raise BaseExceptionResponse(
+    #             http_code=400,
+    #             status_code=400,
+    #             message=MessageConsts.BAD_REQUEST,
+    #             errors={"brokerID": ["brokerID is not exists"]}
+    #         )
+    #     with self.client_repo.session_scope():
+    #         data = payload.dict()
+    #         client = self.client_repo.insert(record=data, returning=True)
+    #         ucm = {
+    #             UserClientMembership.userID.name: current_user[User.id.name],
+    #             UserClientMembership.clientID.name: client[Client.id.name],
+    #             UserClientMembership.role.name: UCMRoleEnum.ADMIN.value,
+    #         }
+    #         self.user_client_membership_repo.insert(record=ucm, returning=False)
+    #         self.user_client_membership_repo.add_admin_membership(client=client, user=current_user)
+    #     return client
+
+    def get_client_pagination(self, current_user: TokenPayloadDTO, page: int, pageSize: int):
+        return self.user_client_membership_repo.pagination_client_by_current_user(
+            current_user=current_user, page=page, pageSize=pageSize
+        )

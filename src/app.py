@@ -19,13 +19,7 @@ app = FastAPI(
     # openapi_url="/docs/openapi.json",
     redoc_url="/docs" if CommonConsts.DEBUG else None,
 )
-cors = CORSMiddleware(
-    app,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
+cors = CORSMiddleware(app, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
 @app.exception_handler(RequestValidationError)

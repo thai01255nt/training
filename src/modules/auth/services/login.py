@@ -17,9 +17,10 @@ class LoginService:
         now = TimeUtils.get_current_vn_time()
         exp = int((now + datetime.timedelta(seconds=AuthConsts.TOKEN_EXPIRE_TIME)).timestamp())
         data: TokenPayloadDTO = {
+            "id": user[User.id.name],
             "email": user[User.email.name],
             "exp": exp,
             "roleCode": AuthConsts.ROLE_CODE[user[User.role.name]],
-            "adminBrokerID": user[User.adminBrokerID.name],
+            "adminNameBroker": user[User.adminNameBroker.name],
         }
         return JWTUtils.encode(payload=data)
