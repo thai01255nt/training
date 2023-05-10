@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse
 
 from src.common.consts import MessageConsts
 from src.common.responses import SuccessResponse
+from src.common.responses.exceptions.base_exceptions import BaseExceptionResponse
 from src.common.responses.pagination import PaginationResponse
 from src.modules.auth.dependencies import authentication
 from src.modules.auth.dtos import TokenPayloadDTO
@@ -44,7 +45,7 @@ USER_SERVICE = UserService()
         Depends(authentication),
     ],
 )
-def get_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], page: int = 0, pageSize: int = 10):
+def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], page: int = 0, pageSize: int = 10):
     records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=page, pageSize=pageSize)
     response = PaginationResponse(
         http_code=200,
@@ -54,5 +55,26 @@ def get_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)]
         page=page,
         page_size=pageSize,
         total=total,
+    )
+    return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
+
+@client_router.get(
+    "/{id_client}",
+    response_model=ClientResponseDTO,
+    dependencies=[
+        Depends(authentication),
+    ],
+)
+def get_report_by_id_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], id_client: str):
+    records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=0, pageSize=1, id_client=id_client)
+    if total == 0:
+        raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
+    results = CLIENT_SERVICE.get_report_by_id_client(id_client=id_client)
+    response = SuccessResponse(
+        http_code=200,
+        status_code=200,
+        message=MessageConsts.SUCCESS,
+        data=results,
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())

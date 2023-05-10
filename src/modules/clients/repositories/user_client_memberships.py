@@ -35,12 +35,14 @@ class UserClientMembershipRepo(BaseRepo):
     #     with cls.session_scope() as session:
     #         session.connection().exec_driver_sql(sql, parameters=[client[Client.brokerID.name], user[User.id.name]])
     #     return
+
     @classmethod
-    def pagination_client_by_current_user(cls, current_user: TokenPayloadDTO, page: int, pageSize: int):
+    def pagination_client_by_current_user(cls, current_user: TokenPayloadDTO, page: int, pageSize: int, id_client: str = None):
         if current_user["roleCode"] == AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]:
             select_sql = f"""
                 SELECT *
                 FROM {cls.client_builder.full_table_name}
+                {"WHERE idClient = ?" if id_client is not None else ""}
                 ORDER BY id
                 OFFSET ? ROWS
                 FETCH NEXT ? ROWS ONLY;
@@ -48,9 +50,10 @@ class UserClientMembershipRepo(BaseRepo):
             count_sql = f"""
                 SELECT count(*) as total
                 FROM {cls.client_builder.full_table_name}
+                {"WHERE idClient = ?" if id_client is not None else ""}
             """
-            select_params = [page * pageSize, pageSize]
-            count_params = []
+            count_params = [id_client] if id_client is not None else []
+            select_params = count_params + [page * pageSize, pageSize]
         else:
             params = [current_user["id"]]
             admin_brokder_sql = ""
@@ -61,7 +64,7 @@ class UserClientMembershipRepo(BaseRepo):
                 SELECT DISTINCT c.*
                 FROM {cls.client_builder.full_table_name} c
                 LEFT JOIN {cls.query_builder.full_table_name} uc ON c.idClient = uc.idClient
-                WHERE uc.userID = ? {admin_brokder_sql}
+                WHERE (uc.userID = ? {admin_brokder_sql}) {" AND c.idClient = ?" if id_client is not None else ""}
                 ORDER BY c.id
                 OFFSET ? ROWS
                 FETCH NEXT ? ROWS ONLY;
@@ -70,10 +73,10 @@ class UserClientMembershipRepo(BaseRepo):
                 SELECT count(DISTINCT c.id) as total
                 FROM {cls.client_builder.full_table_name} c
                 LEFT JOIN {cls.query_builder.full_table_name} uc ON c.idClient = uc.idClient
-                WHERE uc.userID = ? {admin_brokder_sql}
+                WHERE (uc.userID = ? {admin_brokder_sql}) {" AND c.idClient = ?" if id_client is not None else ""}
             """
-            select_params = params.copy()
-            count_params = params.copy()
+            select_params = params.copy() + [id_client] if id_client is not None else []
+            count_params = params.copy() + [id_client] if id_client is not None else []
             select_params += [page * pageSize, pageSize]
         with cls.session_scope() as session:
             cur = session.connection().exec_driver_sql(count_sql, parameters=tuple(count_params)).cursor
