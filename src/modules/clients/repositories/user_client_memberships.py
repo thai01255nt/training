@@ -75,8 +75,8 @@ class UserClientMembershipRepo(BaseRepo):
                 LEFT JOIN {cls.query_builder.full_table_name} uc ON c.idClient = uc.idClient
                 WHERE (uc.userID = ? {admin_brokder_sql}) {" AND c.idClient = ?" if id_client is not None else ""}
             """
-            select_params = params.copy() + [id_client] if id_client is not None else []
-            count_params = params.copy() + [id_client] if id_client is not None else []
+            select_params = params.copy() + ([id_client] if id_client is not None else [])
+            count_params = params.copy() + ([id_client] if id_client is not None else [])
             select_params += [page * pageSize, pageSize]
         with cls.session_scope() as session:
             cur = session.connection().exec_driver_sql(count_sql, parameters=tuple(count_params)).cursor
