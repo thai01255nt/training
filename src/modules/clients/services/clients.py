@@ -70,10 +70,10 @@ class ClientService:
         realised_pnl_raw = pd.concat([realised_pnl_raw, realisedPNL], ignore_index=True).replace({np.nan: None})
         deposit_raw = pd.concat([deposit_raw, deposit], ignore_index=True).replace({np.nan: None})
         results = {
-            "expectedPNL": {"schema": list(expected_pnl_raw.columns), "records": expected_pnl_raw.values.tolist()},
-            "realisedPNL": {"schema": list(realised_pnl_raw.columns), "records": realised_pnl_raw.values.tolist()},
-            "deposite": {"schema": list(deposit_raw.columns), "records": deposit_raw.values.tolist()},
-            "portfolio": {"schema": list(portfolio_raw.columns), "records": portfolio_raw.values.tolist()},
-            "assets": {"schema": list(assets.columns), "records": assets.values.tolist()}
+            "expectedPNL": {"schema": list(expected_pnl_raw.columns), "records": expected_pnl_raw.round(3).values.tolist()},
+            "realisedPNL": {"schema": list(realised_pnl_raw.columns), "records": realised_pnl_raw.round(3).values.tolist()},
+            "deposite": {"schema": list(deposit_raw.columns), "records": deposit_raw.round(3).values.tolist()},
+            "portfolio": {"schema": list(portfolio_raw.columns), "records": portfolio_raw.round(3).values.tolist()},
+            "assets": {"schema": list(assets.columns), "records": assets.round(3).values.tolist()}
         }
         return results

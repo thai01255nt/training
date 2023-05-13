@@ -15,7 +15,7 @@ class ClientRepo(BaseRepo):
     @classmethod
     def data_frame_factory(cls, cur) -> pd.DataFrame:
         columns = [column[0] for column in cur.description]
-        results = cur.fetchall()
+        results = [list(item) for item in cur.fetchall()]
         results = pd.DataFrame(results, columns=columns)
         return results
 
