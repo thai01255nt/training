@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from src.common.consts import MessageConsts
 from src.common.responses.exceptions import BaseExceptionResponse
@@ -39,36 +40,40 @@ class ClientService:
         )
 
     def get_report_by_id_client(self, id_client: str):
-        expected_pnl, realised_pnl, deposit, portfolio = self.client_repo.get_report_by_id_client(id_client=id_client)
-        summary = {}
-        summary["expectedPNL"] = {} if len(expected_pnl) == 0 else pd.DataFrame(expected_pnl)[[
+        expected_pnl_raw, realised_pnl_raw, deposit_raw, portfolio_raw = self.client_repo.get_report_by_id_client(id_client=id_client)
+        expected_pnl_cols = [
             "totalValueBuy", "totalValueSell", "totalValueLoan", "costBuy", "costSell",
             "costLoanFromDayLoan", "costLoanFromDayAdvance", "costLoan", "pnl", "minDeposit"
-        ]].sum(axis=0).to_dict() 
-        summary["realisedPNL"] = {} if len(realised_pnl) == 0 else pd.DataFrame(realised_pnl)[[
+        ]
+        realised_pnl_cols = [
             "totalValueBuy", "totalValueSell", "totalValueLoan", "costBuy", "costSell",
             "costLoanFromDayLoan", "costLoanFromDayAdvance", "costLoan", "pnl"
-        ]].sum(axis=0).to_dict()
-        summary["deposit"] = {} if len(deposit) == 0 else pd.DataFrame(deposit)[["deposit"]].sum(axis=0).to_dict()
+        ]
+        deposit_cols = ["deposit"]
 
-        summary["assets"] = {
-            "totalValueLoan": summary["expectedPNL"].get("totalValueLoan", 0),
-            "deposit": summary["deposit"].get("deposit", 0),
-            "realisedPNL": summary["realisedPNL"].get("pnl", 0),
-            "expectedPNL": summary["expectedPNL"].get("pnl", 0),
-            "minDeposit": summary["expectedPNL"].get("minDeposit", 0),
-        }
-        summary["assets"]["nav"] = summary["assets"]["deposit"] + summary["assets"]["realisedPNL"] + summary["assets"]["expectedPNL"]
-        total_value_sell = summary["expectedPNL"].get("totalValueSell", 0)
-        summary["assets"]["coverageRatio"] = None if total_value_sell == 0 else summary["assets"]["nav"]/total_value_sell
-        summary["assets"]["remain"] = summary["assets"]["nav"] - summary["assets"]["minDeposit"]
-        summary["assets"]["pnl"] = summary["assets"]["realisedPNL"] - summary["assets"]["expectedPNL"]
-        summary["assets"]["purchasingPower"] = summary["assets"]["remain"]*5
+        expectedPNL = pd.DataFrame(expected_pnl_raw[expected_pnl_cols].sum(axis=0)).T
+        realisedPNL = pd.DataFrame(realised_pnl_raw[realised_pnl_cols].sum(axis=0)).T
+        deposit = pd.DataFrame(deposit_raw[deposit_cols].sum(axis=0)).T
+        assets = pd.DataFrame([[]])
+        assets["totalValueLoan"] = expectedPNL["totalValueLoan"].iloc[0]
+        assets["deposit"] = deposit["deposit"].iloc[0]
+        assets["realisedPNL"] = realisedPNL["pnl"].iloc[0]
+        assets["expectedPNL"] = expectedPNL["pnl"].iloc[0]
+        assets["minDeposit"] = expectedPNL["minDeposit"].iloc[0]
+        assets["nav"] = assets["deposit"] + assets["realisedPNL"] + assets["expectedPNL"]
+        total_value_sell = expectedPNL["totalValueLoan"].iloc[0]
+        assets["coverageRatio"] = None if total_value_sell == 0 else assets["nav"]/total_value_sell
+        assets["remain"] = assets["nav"] - assets["minDeposit"]
+        assets["pnl"] = assets["realisedPNL"] - assets["expectedPNL"]
+        assets["purchasingPower"] = assets["remain"]*5
+        expected_pnl_raw = pd.concat([expected_pnl_raw, expectedPNL], ignore_index=True).replace({np.nan: None})
+        realised_pnl_raw = pd.concat([realised_pnl_raw, realisedPNL], ignore_index=True).replace({np.nan: None})
+        deposit_raw = pd.concat([deposit_raw, deposit], ignore_index=True).replace({np.nan: None})
         results = {
-            "expectedPNL": expected_pnl,
-            "realisedPNL": realised_pnl,
-            "deposite": deposit,
-            "portfolio": portfolio,
-            "summary": summary
+            "expectedPNL": {"schema": list(expected_pnl_raw.columns), "records": expected_pnl_raw.values.tolist()},
+            "realisedPNL": {"schema": list(realised_pnl_raw.columns), "records": realised_pnl_raw.values.tolist()},
+            "deposite": {"schema": list(deposit_raw.columns), "records": deposit_raw.values.tolist()},
+            "portfolio": {"schema": list(portfolio_raw.columns), "records": portfolio_raw.values.tolist()},
+            "assets": {"schema": list(assets.columns), "records": assets.values.tolist()}
         }
         return results
