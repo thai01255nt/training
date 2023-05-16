@@ -34,13 +34,14 @@ class ClientService:
     #         self.user_client_membership_repo.add_admin_membership(client=client, user=current_user)
     #     return client
 
-    def get_client_pagination(self, current_user: TokenPayloadDTO, page: int, pageSize: int, id_client: str = None):
+    def get_client_pagination(self, current_user: TokenPayloadDTO, page: int, pageSize: int, brokerName, id_client: str = None):
         return self.user_client_membership_repo.pagination_client_by_current_user(
-            current_user=current_user, page=page, pageSize=pageSize, id_client=id_client
+            current_user=current_user, page=page, pageSize=pageSize, id_client=id_client, brokerName=brokerName
         )
 
     def get_report_by_id_client(self, id_client: str):
-        expected_pnl_raw, realised_pnl_raw, deposit_raw, portfolio_raw = self.client_repo.get_report_by_id_client(id_client=id_client)
+        expected_pnl_raw, realised_pnl_raw, deposit_raw, portfolio_raw = self.client_repo.get_report_by_id_client(
+            id_client=id_client)
         expected_pnl_cols = [
             "totalValueBuy", "totalValueSell", "totalValueLoan", "costBuy", "costSell",
             "costLoanFromDayLoan", "costLoanFromDayAdvance", "costLoan", "pnl", "minDeposit"
@@ -77,3 +78,13 @@ class ClientService:
             "assets": {"schema": list(assets.columns), "records": assets.round(3).values.tolist()}
         }
         return results
+
+    def get_management_by_broker_name(self, broker_name: str, page: int, pageSize: int):
+        management, total = self.client_repo.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize)
+        management = management.replace({np.nan: None})
+        return {"schema": list(management.columns), "records": management.round(3).values.tolist()}, total
+
+    def get_portfolio_by_broker_name(self, broker_name: str):
+        portfolio = self.client_repo.get_portfolio_by_broker_name(broker_name=broker_name)
+        portfolio = portfolio.replace({np.nan: None})
+        return {"schema": list(portfolio.columns), "records": portfolio.round(3).values.tolist()}

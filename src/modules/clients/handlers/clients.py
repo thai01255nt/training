@@ -7,10 +7,12 @@ from src.common.consts import MessageConsts
 from src.common.responses import SuccessResponse
 from src.common.responses.exceptions.base_exceptions import BaseExceptionResponse
 from src.common.responses.pagination import PaginationResponse
-from src.modules.auth.dependencies import authentication
+from src.modules.auth.consts import AuthConsts
+from src.modules.auth.dependencies import RoleCodePermission, authentication
 from src.modules.auth.dtos import TokenPayloadDTO
 from src.modules.clients.dtos import ClientResponseDTO, AddClientPayloadDTO
 from src.modules.clients.services import ClientService
+from src.modules.users.entities.users import RoleEnum
 from src.modules.users.services import UserService
 from src.utils.data_utils import DataUtils
 
@@ -39,14 +41,57 @@ USER_SERVICE = UserService()
 
 
 @client_router.get(
+    "/management/management/{broker_name}",
+    dependencies=[
+        Depends(authentication),
+        Depends(
+            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
+        )
+    ],
+)
+def get_management_by_broker_name(broker_name: str, page: int, pageSize: int):
+    data, total = CLIENT_SERVICE.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize)
+    response = PaginationResponse(
+        http_code=200,
+        status_code=200,
+        message=MessageConsts.SUCCESS,
+        data=data,
+        page=page,
+        page_size=pageSize,
+        total=total,
+    )
+    return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
+
+@client_router.get(
+    "/management/portfolio/{broker_name}",
+    dependencies=[
+        Depends(authentication),
+        Depends(
+            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
+        )
+    ],
+)
+def get_portfolio_by_broker_name(broker_name: str):
+    data = CLIENT_SERVICE.get_portfolio_by_broker_name(broker_name=broker_name)
+    response = SuccessResponse(
+        http_code=200,
+        status_code=200,
+        message=MessageConsts.SUCCESS,
+        data=data,
+    )
+    return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
+
+@client_router.get(
     "/",
     response_model=ClientResponseDTO,
     dependencies=[
         Depends(authentication),
     ],
 )
-def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], page: int = 0, pageSize: int = 10):
-    records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=page, pageSize=pageSize)
+def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], brokerName: str, page: int, pageSize: int):
+    records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
     response = PaginationResponse(
         http_code=200,
         status_code=200,
@@ -67,9 +112,10 @@ def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentic
     ],
 )
 def get_report_by_id_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], id_client: str):
-    records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=0, pageSize=1, id_client=id_client)
-    if total == 0:
-        raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
+    # records, total = CLIENT_SERVICE.get_client_pagination(
+    #     current_user=current_user, page=0, pageSize=1, id_client=id_client, brokerName=None)
+    # if total == 0:
+    #     raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
     results = CLIENT_SERVICE.get_report_by_id_client(id_client=id_client)
     response = SuccessResponse(
         http_code=200,
