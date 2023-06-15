@@ -93,7 +93,7 @@ def get_portfolio_by_broker_name(broker_name: str):
     ],
 )
 def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], brokerName: str, page: int, pageSize: int):
-    records, total = CLIENT_SERVICE.get_client_pagination(user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
+    records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
     response = PaginationResponse(
         http_code=200,
         status_code=200,
