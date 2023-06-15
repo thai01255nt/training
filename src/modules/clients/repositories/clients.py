@@ -1,3 +1,4 @@
+from typing import Dict, List
 import numpy as np
 import pandas as pd
 from src.db.sessions import backend_session_scope
@@ -18,6 +19,18 @@ class ClientRepo(BaseRepo):
         results = [list(item) for item in cur.fetchall()]
         results = pd.DataFrame(results, columns=columns)
         return results
+
+    @classmethod
+    def get_by_id_client(cls, id_client: str) -> List[Dict]:
+        sql = f"""
+            select *
+            from {cls.query_builder.full_table_name}
+            where idClient=?
+        """
+        with cls.session_scope() as session:
+            cur = session.connection().exec_driver_sql(sql, tuple([id_client])).cursor
+            records = cls.row_factory(cur=cur)
+        return records
 
     @classmethod
     def get_report_by_id_client(cls, id_client: str):

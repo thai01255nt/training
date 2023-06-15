@@ -1,4 +1,4 @@
--- CREATE TABLE [dbo].[brokers](
+-- CREATE TABLE [trading].[brokers](
 --     [id] BIGINT IDENTITY(1,1) NOT NULL,
 -- 	[brokerName] [varchar](64) NOT NULL,
 --     [createdAt] DATETIME NOT NULL DEFAULT switchoffset(sysutcdatetime(),'+07:00'),
@@ -7,7 +7,7 @@
 -- 	UNIQUE NONCLUSTERED (brokerName ASC)
 -- )
 
--- CREATE TABLE [dbo].[users](
+-- CREATE TABLE [trading].[users](
 --     [id] BIGINT IDENTITY(1,1) NOT NULL,
 -- 	[email] [varchar](64) NOT NULL,
 -- 	[password] [varchar](255) NOT NULL,
@@ -18,9 +18,9 @@
 -- 	PRIMARY KEY CLUSTERED (id ASC),
 -- 	FOREIGN KEY (adminBrokerID) REFERENCES brokers(id) ON DELETE NO ACTION,
 -- )
--- CREATE UNIQUE NONCLUSTERED INDEX uidx_u ON [dbo].[users] (email ASC);
+-- CREATE UNIQUE NONCLUSTERED INDEX uidx_u ON [trading].[users] (email ASC);
 
--- CREATE TABLE [dbo].[clients](
+-- CREATE TABLE [trading].[clients](
 --     [id] [varchar](64) NOT NULL,
 -- 	[brokerID] BIGINT NOT NULL,
 --     [owner] [nvarchar](64) NOT NULL,
@@ -31,7 +31,7 @@
 -- 	FOREIGN KEY (brokerID) REFERENCES brokers(id) ON DELETE NO ACTION
 -- )
 
--- CREATE TABLE [dbo].[userClientMemberships](
+-- CREATE TABLE [trading].[userClientMemberships](
 --     [id] [varchar](64) NOT NULL,
 -- 	[userID] BIGINT NOT NULL,
 -- 	[clientID] [varchar](64) NOT NULL,
@@ -42,9 +42,9 @@
 -- 	FOREIGN KEY (userID) REFERENCES users(id) ON DELETE CASCADE,
 -- 	FOREIGN KEY (clientID) REFERENCES clients(id) ON DELETE CASCADE
 -- )
--- CREATE UNIQUE NONCLUSTERED INDEX ucmidx_uc ON [dbo].[userClientMemberships] (userID ASC, clientID ASC);
+-- CREATE UNIQUE NONCLUSTERED INDEX ucmidx_uc ON [trading].[userClientMemberships] (userID ASC, clientID ASC);
 
-CREATE TABLE [dbo].[users](
+CREATE TABLE [trading].[users](
     [id] BIGINT IDENTITY(1,1) NOT NULL,
 	[email] [varchar](64) NOT NULL,
 	[password] [varchar](255) NOT NULL,
@@ -55,9 +55,9 @@ CREATE TABLE [dbo].[users](
 	PRIMARY KEY CLUSTERED (id ASC),
 	-- FOREIGN KEY (adminBrokerID) REFERENCES brokers(id) ON DELETE NO ACTION,
 )
-CREATE UNIQUE NONCLUSTERED INDEX uidx_u ON [dbo].[users] (email ASC);
+CREATE UNIQUE NONCLUSTERED INDEX uidx_u ON [trading].[users] (email ASC);
 
-CREATE TABLE [dbo].[userClientMemberships](
+CREATE TABLE [trading].[userClientMemberships](
     [id] BIGINT IDENTITY(1,1) NOT NULL,
 	[userID] BIGINT NOT NULL,
 	[idClient] [varchar](64) NOT NULL,
@@ -68,9 +68,9 @@ CREATE TABLE [dbo].[userClientMemberships](
 	FOREIGN KEY (userID) REFERENCES users(id) ON DELETE CASCADE,
 	-- FOREIGN KEY (clientID) REFERENCES clients(id) ON DELETE CASCADE
 )
-CREATE UNIQUE NONCLUSTERED INDEX ucmidx_uc ON [dbo].[userClientMemberships] (userID ASC, idClient ASC);
+CREATE UNIQUE NONCLUSTERED INDEX ucmidx_uc ON [trading].[userClientMemberships] (userID ASC, idClient ASC);
 
-CREATE TABLE [dbo].[broker] (
+CREATE TABLE [trading].[broker] (
 	[__createdAt__] nvarchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT format(switchoffset(sysutcdatetime(),'+07:00'),'yyyy-MM-dd HH:mm:ss') NOT NULL,
 	[__updatedAt__] nvarchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT format(switchoffset(sysutcdatetime(),'+07:00'),'yyyy-MM-dd HH:mm:ss') NOT NULL,
 	[id] BIGINT IDENTITY(1,1) NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE [dbo].[broker] (
 	CONSTRAINT UQ__broker__24987FF09DB6010D UNIQUE (nameBroker)
 );
 
-CREATE TABLE [dbo].[client] (
+CREATE TABLE [trading].[client] (
 	[__createdAt__] nvarchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT format(switchoffset(sysutcdatetime(),'+07:00'),'yyyy-MM-dd HH:mm:ss') NOT NULL,
 	[__updatedAt__] nvarchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS DEFAULT format(switchoffset(sysutcdatetime(),'+07:00'),'yyyy-MM-dd HH:mm:ss') NOT NULL,
 	[id] BIGINT IDENTITY(1,1) NOT NULL,
@@ -94,4 +94,4 @@ CREATE TABLE [dbo].[client] (
 	CONSTRAINT UQ__client__A6A610D56CB44C7C UNIQUE (idClient)
 );
 
-ALTER TABLE master.dbo.client ADD CONSTRAINT FK__client__nameBrok__573DED66 FOREIGN KEY (nameBroker) REFERENCES master.dbo.broker(nameBroker) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE master.trading.client ADD CONSTRAINT FK__client__nameBrok__573DED66 FOREIGN KEY (nameBroker) REFERENCES master.trading.broker(nameBroker) ON DELETE CASCADE ON UPDATE CASCADE;

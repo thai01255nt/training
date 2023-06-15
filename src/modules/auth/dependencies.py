@@ -10,6 +10,7 @@ from src.modules.auth.jwt_utils import JWTUtils
 from src.modules.users.repositories import UserRepo
 from src.modules.users.entities import User
 from src.modules.users.entities.users import RoleEnum
+from src.utils.time_utils import TimeUtils
 
 
 class Authentication(HTTPBearer):
@@ -26,6 +27,9 @@ class Authentication(HTTPBearer):
         is_success, payload = JWTUtils.decode_jwt_token(encode_string=token)
         if not is_success:
             raise BaseExceptionResponse(http_code=403, status_code=403, message="Invalid token")
+        now = int(TimeUtils.get_current_vn_time().timestamp())
+        if now >= payload["exp"]:
+            raise BaseExceptionResponse(http_code=403, status_code=403, message="Expired token")
         if payload['roleCode'] == AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]:
             user = UserRepo.get_by_email(email=payload['email'])
             if user[0][User.role.name] != RoleEnum.ADMIN.value:

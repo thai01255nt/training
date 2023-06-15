@@ -84,3 +84,17 @@ class UserClientMembershipRepo(BaseRepo):
             cur = session.connection().exec_driver_sql(select_sql, parameters=tuple(select_params)).cursor
             records = cls.row_factory(cur=cur)
             return records, total[0]["total"]
+
+    @classmethod
+    def get_membership_by_user_id(cls, user_id: int, id_client: str = None):
+        sql = f"""
+            select c.*
+            from {cls.query_builder.full_table_name} uc
+            left join {cls.client_builder.full_table_name} c on c.idClient = uc.idClient
+            where uc.userID = ? {" AND uc.idClient=?" if id_client is not None else ""}
+            order by uc.updatedAt desc
+        """
+        params = [user_id] + ([id_client] if id_client is not None else [])
+        with cls.session_scope() as session:
+            cur = session.connection().exec_driver_sql(sql, parameters=tuple(params)).cursor
+            return cls.row_factory(cur=cur)

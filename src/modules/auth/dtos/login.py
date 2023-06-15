@@ -26,7 +26,13 @@ class LoginPayloadDTO(BaseDTO):
     @validator("email")
     def validate_user_name(cls, v: str):
         v = v.strip()
-        Validator.validate_email(value=v)
+        try:
+            Validator.validate_email(value=v)
+        except Exception as email_except:
+            try:
+                Validator.validate_id_client(value=v)
+            except Exception as id_client_except:
+                assert False, str(email_except) + " or " + str(id_client_except)
         return v
 
 

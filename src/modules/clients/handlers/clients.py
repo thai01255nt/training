@@ -11,15 +11,17 @@ from src.modules.auth.consts import AuthConsts
 from src.modules.auth.dependencies import RoleCodePermission, authentication
 from src.modules.auth.dtos import TokenPayloadDTO
 from src.modules.clients.dtos import ClientResponseDTO, AddClientPayloadDTO
-from src.modules.clients.services import ClientService
-from src.modules.users.entities.users import RoleEnum
+from src.modules.clients.dtos.clients import AddUserClientPayloadDTO
+from src.modules.clients.services import ClientService, UserClientService
+from src.modules.users.entities.users import RoleEnum, User
 from src.modules.users.services import UserService
 from src.utils.data_utils import DataUtils
 
 client_router = APIRouter()
+user_client_router = APIRouter()
 CLIENT_SERVICE = ClientService()
 USER_SERVICE = UserService()
-
+USER_CLIENT_SERVICE = UserClientService()
 
 # @client_router.post(
 #     "/",
@@ -91,7 +93,7 @@ def get_portfolio_by_broker_name(broker_name: str):
     ],
 )
 def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], brokerName: str, page: int, pageSize: int):
-    records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
+    records, total = CLIENT_SERVICE.get_client_pagination(user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
     response = PaginationResponse(
         http_code=200,
         status_code=200,
@@ -122,5 +124,51 @@ def get_report_by_id_client(current_user: Annotated[TokenPayloadDTO, Depends(aut
         status_code=200,
         message=MessageConsts.SUCCESS,
         data=results,
+    )
+    return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
+@user_client_router.post(
+    "/",
+    dependencies=[
+        Depends(authentication),
+        Depends(
+            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
+        )
+    ]
+)
+def add_user_client(payload: AddUserClientPayloadDTO):
+    # records, total = CLIENT_SERVICE.get_client_pagination(
+    #     current_user=current_user, page=0, pageSize=1, id_client=id_client, brokerName=None)
+    # if total == 0:
+    #     raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
+    USER_CLIENT_SERVICE.add_user_client(payload=payload)
+    response = SuccessResponse(
+        http_code=200,
+        status_code=200,
+        message=MessageConsts.SUCCESS,
+    )
+    return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
+@user_client_router.get(
+    "/users/{user_id}/clients",
+    dependencies=[
+        Depends(authentication),
+        Depends(
+            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
+        )
+    ]
+)
+def add_user_client(user_id: int):
+    # records, total = CLIENT_SERVICE.get_client_pagination(
+    #     current_user=current_user, page=0, pageSize=1, id_client=id_client, brokerName=None)
+    # if total == 0:
+    #     raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
+    USER_SERVICE.get_by_id(user_id)
+    clients = USER_CLIENT_SERVICE.user_client_membership_repo.get_membership_by_user_id(user_id=user_id)
+    response = SuccessResponse(
+        http_code=200,
+        status_code=200,
+        message=MessageConsts.SUCCESS,
+        data=DataUtils.serialize_objects(clients),
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())

@@ -31,15 +31,14 @@ class BaseRepo(Generic[T]):
         with cls.session_scope() as session:
             insert_query = cls.query_builder.insert_many(records=records, returning=returning)
             cur = session.connection().exec_driver_sql(insert_query.sql, tuple(insert_query.params)).cursor
-            return cls.row_factory(cur=cur)
+            if returning:
+                return cls.row_factory(cur=cur)
 
     @classmethod
     def insert(cls, record: Dict, returning) -> Dict:
         results = cls.insert_many(records=[record], returning=returning)
         if returning:
             return results[0]
-        else:
-            return None
 
     @classmethod
     def update_many(
@@ -69,8 +68,10 @@ class BaseRepo(Generic[T]):
                 inner join {cls.query_builder.full_table_name} t on {sql_conditions}
             """
             cur = session.connection().exec_driver_sql(sql, tuple(query_values.params)).cursor
-            results = cls.row_factory(cur=cur)
-        return results
+            if returning:
+                return cls.row_factory(cur=cur)
+            else:
+                return None
 
     @classmethod
     def update(cls, record: Dict, identity_columns: List[str], returning, text_clauses: Dict[str, TextSQL] = None) -> T:
@@ -178,6 +179,6 @@ class BaseRepo(Generic[T]):
             WHERE %s
         """ % (cls.query_builder.full_table_name, condition_query.sql)
         with cls.session_scope() as session:
-            cur = session.connection().exec_driver_sql(sql, condition_query.params).cursor
+            cur = session.connection().exec_driver_sql(sql, tuple(condition_query.params)).cursor
             records = cls.row_factory(cur=cur)
             return records

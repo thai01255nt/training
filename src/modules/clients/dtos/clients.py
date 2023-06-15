@@ -37,3 +37,13 @@ class ClientResponseDTO(TypedDict):
     fee: float
     createdAt: datetime.datetime
     updatedAt: datetime.datetime
+
+
+class AddUserClientPayloadDTO(BaseDTO):
+    userID: int
+    idClient: str
+
+    @validator("idClient")
+    def validate_id_client(cls, v: str):
+        Validator.validate_id_client(value=v)
+        return v
