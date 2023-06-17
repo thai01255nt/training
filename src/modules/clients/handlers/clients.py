@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
@@ -45,13 +45,25 @@ USER_CLIENT_SERVICE = UserClientService()
 @client_router.get(
     "/management/management/{broker_name}",
     dependencies=[
-        Depends(authentication),
-        Depends(
-            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
-        )
+        Depends(authentication)
     ],
 )
-def get_management_by_broker_name(broker_name: str, page: int, pageSize: int):
+def get_management_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], broker_name: str, page: int, pageSize: int):
+    if current_user["roleCode"] != AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value] and current_user["adminNameBroker"] != broker_name:
+        if current_user["adminNameBroker"] is None:
+            raise BaseExceptionResponse(status_code=403, http_code=403, message=MessageConsts.FORBIDDEN)
+        if current_user["adminNameBroker"] != broker_name:
+            response = PaginationResponse(
+                http_code=200,
+                status_code=200,
+                message=MessageConsts.SUCCESS,
+                data={"schema": [], "records":[]},
+                page=page,
+                page_size=pageSize,
+                total=0,
+            )
+            return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
     data, total = CLIENT_SERVICE.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize)
     response = PaginationResponse(
         http_code=200,
@@ -68,13 +80,21 @@ def get_management_by_broker_name(broker_name: str, page: int, pageSize: int):
 @client_router.get(
     "/management/portfolio/{broker_name}",
     dependencies=[
-        Depends(authentication),
-        Depends(
-            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
-        )
+        Depends(authentication)
     ],
 )
-def get_portfolio_by_broker_name(broker_name: str):
+def get_portfolio_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], broker_name: str):
+    if current_user["roleCode"] != AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value] and current_user["adminNameBroker"] != broker_name:
+        if current_user["adminNameBroker"] is None:
+            raise BaseExceptionResponse(status_code=403, http_code=403, message=MessageConsts.FORBIDDEN)
+        if current_user["adminNameBroker"] != broker_name:
+            response = SuccessResponse(
+                http_code=200,
+                status_code=200,
+                message=MessageConsts.SUCCESS,
+                data={"schema": [], "records":[]},
+            )
+            return JSONResponse(status_code=response.http_code, content=response.to_dict())
     data = CLIENT_SERVICE.get_portfolio_by_broker_name(broker_name=broker_name)
     response = SuccessResponse(
         http_code=200,
@@ -92,7 +112,7 @@ def get_portfolio_by_broker_name(broker_name: str):
         Depends(authentication),
     ],
 )
-def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], brokerName: str, page: int, pageSize: int):
+def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], page: int, pageSize: int, brokerName: Optional[str] = None):
     records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
     response = PaginationResponse(
         http_code=200,
@@ -114,10 +134,10 @@ def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentic
     ],
 )
 def get_report_by_id_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], id_client: str):
-    # records, total = CLIENT_SERVICE.get_client_pagination(
-    #     current_user=current_user, page=0, pageSize=1, id_client=id_client, brokerName=None)
-    # if total == 0:
-    #     raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
+    records, total = CLIENT_SERVICE.get_client_pagination(
+        current_user=current_user, page=0, pageSize=1, id_client=id_client, brokerName=None)
+    if total == 0:
+        raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
     results = CLIENT_SERVICE.get_report_by_id_client(id_client=id_client)
     response = SuccessResponse(
         http_code=200,
@@ -137,10 +157,6 @@ def get_report_by_id_client(current_user: Annotated[TokenPayloadDTO, Depends(aut
     ]
 )
 def add_user_client(payload: AddUserClientPayloadDTO):
-    # records, total = CLIENT_SERVICE.get_client_pagination(
-    #     current_user=current_user, page=0, pageSize=1, id_client=id_client, brokerName=None)
-    # if total == 0:
-    #     raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
     USER_CLIENT_SERVICE.add_user_client(payload=payload)
     response = SuccessResponse(
         http_code=200,
@@ -158,11 +174,7 @@ def add_user_client(payload: AddUserClientPayloadDTO):
         )
     ]
 )
-def add_user_client(user_id: int):
-    # records, total = CLIENT_SERVICE.get_client_pagination(
-    #     current_user=current_user, page=0, pageSize=1, id_client=id_client, brokerName=None)
-    # if total == 0:
-    #     raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
+def get_user_client(user_id: int):
     USER_SERVICE.get_by_id(user_id)
     clients = USER_CLIENT_SERVICE.user_client_membership_repo.get_membership_by_user_id(user_id=user_id)
     response = SuccessResponse(

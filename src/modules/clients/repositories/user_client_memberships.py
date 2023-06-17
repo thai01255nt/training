@@ -42,7 +42,7 @@ class UserClientMembershipRepo(BaseRepo):
             select_sql = f"""
                 SELECT *
                 FROM {cls.client_builder.full_table_name}
-                WHERE nameBroker = ? {" AND idClient = ?" if id_client is not None else ""}
+                WHERE 1=1 { "AND nameBroker = ?" if brokerName is not None else ""} {" AND idClient = ?" if id_client is not None else ""}
                 ORDER BY id
                 OFFSET ? ROWS
                 FETCH NEXT ? ROWS ONLY;
@@ -50,12 +50,12 @@ class UserClientMembershipRepo(BaseRepo):
             count_sql = f"""
                 SELECT count(*) as total
                 FROM {cls.client_builder.full_table_name}
-                WHERE nameBroker = ? {" AND idClient = ?" if id_client is not None else ""}
+                WHERE 1=1 { "AND nameBroker = ?" if brokerName is not None else ""} {" AND idClient = ?" if id_client is not None else ""}
             """
-            count_params = [brokerName] + ([id_client] if id_client is not None else [])
+            count_params = ([brokerName] if brokerName is not None else []) + ([id_client] if id_client is not None else [])
             select_params = count_params + [page * pageSize, pageSize]
         else:
-            params = [current_user["id"], brokerName]
+            params = [current_user["id"]] + ([brokerName] if brokerName is not None else [])
             admin_brokder_sql = ""
             if current_user["adminNameBroker"] is not None:
                 admin_brokder_sql = " OR c.nameBroker = ?"
@@ -64,7 +64,7 @@ class UserClientMembershipRepo(BaseRepo):
                 SELECT DISTINCT c.*
                 FROM {cls.client_builder.full_table_name} c
                 LEFT JOIN {cls.query_builder.full_table_name} uc ON c.idClient = uc.idClient
-                WHERE (uc.userID = ? {admin_brokder_sql}) AND nameBroker = ? {" AND c.idClient = ?" if id_client is not None else ""}
+                WHERE (uc.userID = ? {admin_brokder_sql}) { "AND nameBroker = ?" if brokerName is not None else ""} {" AND c.idClient = ?" if id_client is not None else ""}
                 ORDER BY c.id
                 OFFSET ? ROWS
                 FETCH NEXT ? ROWS ONLY;
@@ -73,7 +73,7 @@ class UserClientMembershipRepo(BaseRepo):
                 SELECT count(DISTINCT c.id) as total
                 FROM {cls.client_builder.full_table_name} c
                 LEFT JOIN {cls.query_builder.full_table_name} uc ON c.idClient = uc.idClient
-                WHERE (uc.userID = ? {admin_brokder_sql}) AND nameBroker = ? {" AND c.idClient = ?" if id_client is not None else ""}
+                WHERE (uc.userID = ? {admin_brokder_sql}) { "AND nameBroker = ?" if brokerName is not None else ""} {" AND c.idClient = ?" if id_client is not None else ""}
             """
             select_params = params.copy() + ([id_client] if id_client is not None else [])
             count_params = params.copy() + ([id_client] if id_client is not None else [])
