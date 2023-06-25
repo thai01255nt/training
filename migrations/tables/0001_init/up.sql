@@ -65,7 +65,7 @@ CREATE TABLE [trading].[userClientMemberships](
     [createdAt] DATETIME NOT NULL DEFAULT switchoffset(sysutcdatetime(),'+07:00'),
 	[updatedAt] DATETIME NOT NULL DEFAULT switchoffset(sysutcdatetime(),'+07:00'),
 	PRIMARY KEY CLUSTERED (id ASC),
-	FOREIGN KEY (userID) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (userID) REFERENCES trading.users(id) ON DELETE CASCADE,
 	-- FOREIGN KEY (clientID) REFERENCES clients(id) ON DELETE CASCADE
 )
 CREATE UNIQUE NONCLUSTERED INDEX ucmidx_uc ON [trading].[userClientMemberships] (userID ASC, idClient ASC);
