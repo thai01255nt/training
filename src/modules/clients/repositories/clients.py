@@ -109,7 +109,8 @@ class ClientRepo(BaseRepo):
                 sum(totalValueSell)/ sum(quantity) as priceSell,
                 sum(totalValueBuy) as totalValueBuy,
                 sum(totalValueSell) as totalValueSell,
-                sum(pnl) as pnl
+                sum(pnl) as pnl,
+                max(__updatedAt__) as "Ngày/Giờ Cập nhật"
 
                 from {cls.query_builder.schema}.expected_pnl
                 where idClient = ?
@@ -150,7 +151,7 @@ class ClientRepo(BaseRepo):
 
                 from
 
-                (select nameBroker, idClient, nameClient from trading.client) s0
+                (select nameBroker, idClient, nameClient from {cls.query_builder.schema}.client) s0
 
                 left join
 
@@ -161,11 +162,11 @@ class ClientRepo(BaseRepo):
                 sum(nav) as nav
                 from
                 (
-                select idClient, deposit, 0 as pnl, deposit as nav from trading.deposit
+                select idClient, deposit, 0 as pnl, deposit as nav from {cls.query_builder.schema}.deposit
                 union all
-                select idClient, 0 as deposit, pnl, pnl as nav from trading.realised_pnl
+                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.realised_pnl
                 union all
-                select idClient, 0 as deposit, pnl, pnl as nav from trading.expected_pnl) as s
+                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.expected_pnl) as s
                 group by idClient) s1
                 on s0.idClient = s1.idClient
 
@@ -182,7 +183,7 @@ class ClientRepo(BaseRepo):
                 sum(costLoanFromDayLoan) as costLoanFromDayLoanExpected,
                 sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceExpected,
                 sum(costLoan) as costLoanExpected
-                from trading.expected_pnl
+                from {cls.query_builder.schema}.expected_pnl
                 group by idClient) s2
 
                 on s0.idClient = s2.idClient
@@ -196,7 +197,7 @@ class ClientRepo(BaseRepo):
                 sum(costLoanFromDayLoan) as costLoanFromDayLoanRealised,
                 sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceRealised,
                 sum(costLoan) as costLoanRealised
-                from trading.realised_pnl
+                from {cls.query_builder.schema}.realised_pnl
                 group by idClient) s3
 
                 on s0.idClient = s3.idClient
@@ -205,12 +206,12 @@ class ClientRepo(BaseRepo):
                 OFFSET ? ROWS
                 FETCH NEXT ? ROWS ONLY;
             """
-            count_sql = """
+            count_sql = f"""
                 select count(*) as total
 
                 from
 
-                (select nameBroker, idClient, nameClient from trading.client) s0
+                (select nameBroker, idClient, nameClient from {cls.query_builder.schema}.client) s0
 
                 left join
 
@@ -221,11 +222,11 @@ class ClientRepo(BaseRepo):
                 sum(nav) as nav
                 from
                 (
-                select idClient, deposit, 0 as pnl, deposit as nav from trading.deposit
+                select idClient, deposit, 0 as pnl, deposit as nav from {cls.query_builder.schema}.deposit
                 union all
-                select idClient, 0 as deposit, pnl, pnl as nav from trading.realised_pnl
+                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.realised_pnl
                 union all
-                select idClient, 0 as deposit, pnl, pnl as nav from trading.expected_pnl) as s
+                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.expected_pnl) as s
                 group by idClient) s1
                 on s0.idClient = s1.idClient
 
@@ -242,7 +243,7 @@ class ClientRepo(BaseRepo):
                 sum(costLoanFromDayLoan) as costLoanFromDayLoanExpected,
                 sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceExpected,
                 sum(costLoan) as costLoanExpected
-                from trading.expected_pnl
+                from {cls.query_builder.schema}.expected_pnl
                 group by idClient) s2
 
                 on s0.idClient = s2.idClient
@@ -256,7 +257,7 @@ class ClientRepo(BaseRepo):
                 sum(costLoanFromDayLoan) as costLoanFromDayLoanRealised,
                 sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceRealised,
                 sum(costLoan) as costLoanRealised
-                from trading.realised_pnl
+                from {cls.query_builder.schema}.realised_pnl
                 group by idClient) s3
 
                 on s0.idClient = s3.idClient
@@ -272,7 +273,7 @@ class ClientRepo(BaseRepo):
     def get_portfolio_by_broker_name(cls, broker_name: str):
         with cls.session_scope() as session:
             sql = f"""
-                select ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl
+                select idClient, ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl, __updatedAt__ as updatedAt
                 from
                 (select 
                 nameBroker,idClient, ticker, 
@@ -285,7 +286,7 @@ class ClientRepo(BaseRepo):
                 sum(totalValueSell) as totalValueSell,
                 sum(pnl) as pnl
                 
-                from trading.expected_pnl
+                from {cls.query_builder.schema}.expected_pnl
                 group by nameBroker, idClient, ticker
                 
                 ) as s

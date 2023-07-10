@@ -51,10 +51,12 @@ class ClientService:
             "costLoanFromDayLoan", "costLoanFromDayAdvance", "costLoan", "pnl"
         ]
         deposit_cols = ["deposit"]
+        portfolio_cols = ["totalValueBuy", "totalValueSell", "pnl"]
 
         expectedPNL = pd.DataFrame(expected_pnl_raw[expected_pnl_cols].sum(axis=0)).T
         realisedPNL = pd.DataFrame(realised_pnl_raw[realised_pnl_cols].sum(axis=0)).T
         deposit = pd.DataFrame(deposit_raw[deposit_cols].sum(axis=0)).T
+        portfolio = pd.DataFrame(portfolio_raw[portfolio_cols].sum(axis=0)).T
         assets = pd.DataFrame([[]])
         assets["totalValueLoan"] = expectedPNL["totalValueLoan"].iloc[0]
         assets["deposit"] = deposit["deposit"].iloc[0]
@@ -62,14 +64,16 @@ class ClientService:
         assets["expectedPNL"] = expectedPNL["pnl"].iloc[0]
         assets["minDeposit"] = expectedPNL["minDeposit"].iloc[0]
         assets["nav"] = assets["deposit"] + assets["realisedPNL"] + assets["expectedPNL"]
-        total_value_sell = expectedPNL["totalValueLoan"].iloc[0]
-        assets["coverageRatio"] = None if total_value_sell == 0 else assets["nav"]/total_value_sell
+        total_value_sell = portfolio["totalValueSell"].iloc[0]
+        assets["coverageRatio"] = None if total_value_sell == 0 else (assets["nav"]/total_value_sell)
         assets["remain"] = assets["nav"] - assets["minDeposit"]
-        assets["pnl"] = assets["realisedPNL"] - assets["expectedPNL"]
+        assets["pnl"] = assets["realisedPNL"] + assets["expectedPNL"]
         assets["purchasingPower"] = assets["remain"]*5
         expected_pnl_raw = pd.concat([expected_pnl_raw, expectedPNL], ignore_index=True).replace({np.nan: None})
         realised_pnl_raw = pd.concat([realised_pnl_raw, realisedPNL], ignore_index=True).replace({np.nan: None})
         deposit_raw = pd.concat([deposit_raw, deposit], ignore_index=True).replace({np.nan: None})
+        portfolio_raw = pd.concat([portfolio_raw, portfolio], ignore_index=True).replace({np.nan: None})
+        realised_pnl_raw = realised_pnl_raw.drop(columns=["quantityAvailable", "depositRatio", "minDeposit"])
         results = {
             "expectedPNL": {"schema": list(expected_pnl_raw.columns), "records": expected_pnl_raw.round(3).values.tolist()},
             "realisedPNL": {"schema": list(realised_pnl_raw.columns), "records": realised_pnl_raw.round(3).values.tolist()},
