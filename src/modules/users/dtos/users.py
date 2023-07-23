@@ -60,3 +60,7 @@ class ResetPasswordPayloadDTO(BaseDTO):
     def validate_old_password(cls, v: str):
         Validator.validate_password(value=v)
         return v
+
+class AdminEditUserPayloadDTO(BaseDTO):
+    userID: int
+    adminBrokerName: Optional[str]

@@ -182,3 +182,12 @@ class BaseRepo(Generic[T]):
             cur = session.connection().exec_driver_sql(sql, tuple(condition_query.params)).cursor
             records = cls.row_factory(cur=cur)
             return records
+
+    @classmethod
+    def delete_by_id(cls, id: int):
+        sql = f"""
+            DELETE FROM {cls.query_builder.full_table_name}
+            WHERE id = ?
+        """
+        with cls.session_scope() as session:
+            session.connection().exec_driver_sql(sql, (id,))

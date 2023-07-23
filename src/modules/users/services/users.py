@@ -3,7 +3,7 @@ from src.common.responses.exceptions import BaseExceptionResponse
 from src.modules.auth.dtos.login import TokenPayloadDTO
 from src.modules.brokers.entities.brokers import Broker
 from src.modules.brokers.repositories import BrokerRepo
-from src.modules.users.dtos.users import ResetPasswordPayloadDTO
+from src.modules.users.dtos.users import AdminEditUserPayloadDTO, ResetPasswordPayloadDTO
 from src.modules.users.repositories import UserRepo
 from src.modules.users.dtos import AddUserPayloadDTO
 from src.modules.users.entities.users import RoleEnum, User
@@ -71,4 +71,27 @@ class UserService:
             "password": Security.encrypt(payload.newPassword)
         }
         self.user_repo.update(record=update_data, identity_columns=[User.id.name], returning=False)
+        return
+
+    def edit_user(self, payload: AdminEditUserPayloadDTO):
+        if payload.adminBrokerName is not None:
+            brokers = self.broker_repo.get_by_condition({Broker.nameBroker.name: payload.adminBrokerName})
+            if len(brokers) == 0:
+                raise BaseExceptionResponse(
+                    http_code=400,
+                    status_code=400,
+                    message=MessageConsts.BAD_REQUEST,
+                    errors={"adminBrokerName": ["adminBrokerName is not exists"]},
+                )
+        user = self.get_by_id(payload.userID)
+        update_user = {
+            User.id.name: user[User.id.name],
+            User.adminNameBroker.name: payload.adminBrokerName,
+        }
+        self.user_repo.update(update_user, identity_columns=[User.id.name], returning=False)
+        return
+
+    def delete_user(self, userID: int):
+        user = self.get_by_id(userID)
+        self.user_repo.delete_by_id(user[User.id.name])
         return
