@@ -88,6 +88,8 @@ class UserService:
             User.id.name: user[User.id.name],
             User.adminNameBroker.name: payload.adminBrokerName,
         }
+        # if payload.password is not None:
+        #     update_user[User.password.name] = Security.encrypt(payload.password)
         self.user_repo.update(update_user, identity_columns=[User.id.name], returning=False)
         return
 

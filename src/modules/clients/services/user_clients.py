@@ -5,6 +5,7 @@ from src.common.responses.exceptions import BaseExceptionResponse
 from src.modules.auth.dtos import TokenPayloadDTO
 from src.modules.brokers.repositories import BrokerRepo
 from src.modules.clients.dtos.clients import AddUserClientPayloadDTO
+from src.modules.clients.entities import UserClientMembership
 from src.modules.clients.repositories import ClientRepo, UserClientMembershipRepo
 from src.modules.users.repositories import UserRepo
 
@@ -17,13 +18,24 @@ class UserClientService:
 
     def add_user_client(self, payload: AddUserClientPayloadDTO):
         records = self.user_repo.get_by_id(payload.userID)
-        if len(records) ==0:
-            raise BaseExceptionResponse(http_code=400, status_code=400, message=MessageConsts.BAD_REQUEST, errors={"userID": ["userID not exists"]})
+        if len(records) == 0:
+            raise BaseExceptionResponse(http_code=400, status_code=400, message=MessageConsts.BAD_REQUEST, errors={
+                                        "userID": ["userID not exists"]})
         records = self.client_repo.get_by_id_client(payload.idClient)
-        if len(records) ==0:
-            raise BaseExceptionResponse(http_code=400, status_code=400, message=MessageConsts.BAD_REQUEST, errors={"idClient": ["idClient not exists"]})
-        memberships = self.user_client_membership_repo.get_membership_by_user_id(user_id=payload.userID, id_client=payload.idClient)
+        if len(records) == 0:
+            raise BaseExceptionResponse(http_code=400, status_code=400, message=MessageConsts.BAD_REQUEST, errors={
+                                        "idClient": ["idClient not exists"]})
+        memberships = self.user_client_membership_repo.get_membership_by_user_id(
+            user_id=payload.userID, id_client=payload.idClient)
         if len(memberships) > 0:
-            raise BaseExceptionResponse(http_code=400, status_code=400, message=MessageConsts.BAD_REQUEST, errors={"idClient": ["idClient membership is already exists"]})
+            raise BaseExceptionResponse(http_code=400, status_code=400, message=MessageConsts.BAD_REQUEST, errors={
+                                        "idClient": ["idClient membership is already exists"]})
         self.user_client_membership_repo.insert(payload.dict(exclude_unset=True), returning=False)
         return
+
+    def get_user_client(self, user_id: int, id_client: str):
+        records = self.user_client_membership_repo.get_by_condition(
+            conditions={UserClientMembership.userID.name: user_id, UserClientMembership.idClient.name: id_client})
+        if len(records) == 0:
+            raise BaseExceptionResponse(http_code=404, status_code=404, message=MessageConsts.NOT_FOUND)
+        return records[0]

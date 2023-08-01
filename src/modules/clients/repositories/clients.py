@@ -123,176 +123,235 @@ class ClientRepo(BaseRepo):
             return expected_pnl, realised_pnl, deposit, portfolio
 
     @classmethod
-    def get_management_by_broker_name(cls, broker_name: str, page, pageSize):
+    def get_management_by_broker_name(cls, broker_name: str, page, pageSize, filter_by: Dict):
+        count_params = [broker_name]
+        select_params = [broker_name, page*pageSize, pageSize]
+        if len(filter_by) == 0:
+            filter_sql = ""
+        else:
+            filter_sql = []
+            for col in filter_by:
+                filter_sql.append(f"{col} {filter_by[col]['op']} ?")
+                select_params.append(filter_by[col]['value'])
+                count_params.append(filter_by[col]['value'])
+            filter_sql = " AND ".join(filter_sql)
+            filter_sql = f"WHERE {filter_sql}"
         with cls.session_scope() as session:
             sql = f"""
-                select
-                s0.idClient,
-                s0.nameClient,
-                s1.deposit,
-                s1.nav,
-                s2.totalValueSell,
-                s1.nav / s2.totalValueSell as depositRate,
-                s2.minDeposit,
-                s1.nav - s2.minDeposit as remainingDeposit,
-                s1.nav - s2.minDeposit as withdraw,
-                s1.pnl,
-                (s1.nav - s2.minDeposit) * 5 as purchasingPower,
-                s2.costBuyExpected,
-                s2.costSellExpected,
-                s2.costLoanFromDayLoanExpected,
-                s2.costLoanFromDayAdvanceExpected,
-                s2.costLoanExpected,
-                s3.costBuyRealised,
-                s3.costSellRealised,
-                s3.costLoanFromDayLoanRealised,
-                s3.costLoanFromDayAdvanceRealised,
-                s3.costLoanRealised
+                select *
+                from (
+                    select
+                    s0.idClient,
+                    s0.nameClient,
+                    s1.deposit,
+                    s1.nav,
+                    s2.totalValueSell,
+                    s1.nav / s2.totalValueSell as depositRate,
+                    s2.minDeposit,
+                    s1.nav - s2.minDeposit as remainingDeposit,
+                    s1.nav - s2.minDeposit as withdraw,
+                    s1.pnl,
+                    (s1.nav - s2.minDeposit) * 5 as purchasingPower,
+                    s2.costBuyExpected,
+                    s2.costSellExpected,
+                    s2.costLoanFromDayLoanExpected,
+                    s2.costLoanFromDayAdvanceExpected,
+                    s2.costLoanExpected,
+                    s3.costBuyRealised,
+                    s3.costSellRealised,
+                    s3.costLoanFromDayLoanRealised,
+                    s3.costLoanFromDayAdvanceRealised,
+                    s3.costLoanRealised
 
-                from
+                    from
 
-                (select nameBroker, idClient, nameClient from {cls.query_builder.schema}.client) s0
+                    (select nameBroker, idClient, nameClient from {cls.query_builder.schema}.client) s0
 
-                left join
+                    left join
 
-                --nav
-                (select idClient,
-                sum(deposit) as deposit,
-                sum(pnl) as pnl,
-                sum(nav) as nav
-                from
-                (
-                select idClient, deposit, 0 as pnl, deposit as nav from {cls.query_builder.schema}.deposit
-                union all
-                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.realised_pnl
-                union all
-                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.expected_pnl) as s
-                group by idClient) s1
-                on s0.idClient = s1.idClient
+                    --nav
+                    (select idClient,
+                    sum(deposit) as deposit,
+                    sum(pnl) as pnl,
+                    sum(nav) as nav
+                    from
+                    (
+                    select idClient, deposit, 0 as pnl, deposit as nav from {cls.query_builder.schema}.deposit
+                    union all
+                    select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.realised_pnl
+                    union all
+                    select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.expected_pnl) as s
+                    group by idClient) s1
+                    on s0.idClient = s1.idClient
 
-                left join
+                    left join
 
-                -- portfolio
-                (select idClient,
-                max(__createdAt__) as __createdAt__,
-                max(__updatedAt__) as __updatedAt__,
-                sum(totalValueSell) as totalValueSell,
-                sum(minDeposit) as minDeposit,
-                sum(costBuy) as costBuyExpected,
-                sum(costSell) as costSellExpected,
-                sum(costLoanFromDayLoan) as costLoanFromDayLoanExpected,
-                sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceExpected,
-                sum(costLoan) as costLoanExpected
-                from {cls.query_builder.schema}.expected_pnl
-                group by idClient) s2
+                    -- portfolio
+                    (select idClient,
+                    max(__createdAt__) as __createdAt__,
+                    max(__updatedAt__) as __updatedAt__,
+                    sum(totalValueSell) as totalValueSell,
+                    sum(minDeposit) as minDeposit,
+                    sum(costBuy) as costBuyExpected,
+                    sum(costSell) as costSellExpected,
+                    sum(costLoanFromDayLoan) as costLoanFromDayLoanExpected,
+                    sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceExpected,
+                    sum(costLoan) as costLoanExpected
+                    from {cls.query_builder.schema}.expected_pnl
+                    group by idClient) s2
 
-                on s0.idClient = s2.idClient
+                    on s0.idClient = s2.idClient
 
-                left join
+                    left join
 
-                -- cost realised
-                (select idClient,
-                sum(costBuy) as costBuyRealised,
-                sum(costSell) as costSellRealised,
-                sum(costLoanFromDayLoan) as costLoanFromDayLoanRealised,
-                sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceRealised,
-                sum(costLoan) as costLoanRealised
-                from {cls.query_builder.schema}.realised_pnl
-                group by idClient) s3
+                    -- cost realised
+                    (select idClient,
+                    sum(costBuy) as costBuyRealised,
+                    sum(costSell) as costSellRealised,
+                    sum(costLoanFromDayLoan) as costLoanFromDayLoanRealised,
+                    sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceRealised,
+                    sum(costLoan) as costLoanRealised
+                    from {cls.query_builder.schema}.realised_pnl
+                    group by idClient) s3
 
-                on s0.idClient = s3.idClient
-                where s0.nameBroker = ?
-                order by s0.idClient
-                OFFSET ? ROWS
-                FETCH NEXT ? ROWS ONLY;
+                    on s0.idClient = s3.idClient
+                    where s0.nameBroker = ?
+                    order by s0.idClient
+                    OFFSET ? ROWS
+                    FETCH NEXT ? ROWS ONLY
+                ) _
+                {filter_sql}
             """
             count_sql = f"""
                 select count(*) as total
 
                 from
-
-                (select nameBroker, idClient, nameClient from {cls.query_builder.schema}.client) s0
-
-                left join
-
-                --nav
-                (select idClient,
-                sum(deposit) as deposit,
-                sum(pnl) as pnl,
-                sum(nav) as nav
-                from
                 (
-                select idClient, deposit, 0 as pnl, deposit as nav from {cls.query_builder.schema}.deposit
-                union all
-                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.realised_pnl
-                union all
-                select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.expected_pnl) as s
-                group by idClient) s1
-                on s0.idClient = s1.idClient
+                    select * from (
+                        select
+                        s0.idClient,
+                        s0.nameClient,
+                        s1.deposit,
+                        s1.nav,
+                        s2.totalValueSell,
+                        s1.nav / s2.totalValueSell as depositRate,
+                        s2.minDeposit,
+                        s1.nav - s2.minDeposit as remainingDeposit,
+                        s1.nav - s2.minDeposit as withdraw,
+                        s1.pnl,
+                        (s1.nav - s2.minDeposit) * 5 as purchasingPower,
+                        s2.costBuyExpected,
+                        s2.costSellExpected,
+                        s2.costLoanFromDayLoanExpected,
+                        s2.costLoanFromDayAdvanceExpected,
+                        s2.costLoanExpected,
+                        s3.costBuyRealised,
+                        s3.costSellRealised,
+                        s3.costLoanFromDayLoanRealised,
+                        s3.costLoanFromDayAdvanceRealised,
+                        s3.costLoanRealised
 
-                left join
+                        from
 
-                -- portfolio
-                (select idClient,
-                max(__createdAt__) as __createdAt__,
-                max(__updatedAt__) as __updatedAt__,
-                sum(totalValueSell) as totalValueSell,
-                sum(minDeposit) as minDeposit,
-                sum(costBuy) as costBuyExpected,
-                sum(costSell) as costSellExpected,
-                sum(costLoanFromDayLoan) as costLoanFromDayLoanExpected,
-                sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceExpected,
-                sum(costLoan) as costLoanExpected
-                from {cls.query_builder.schema}.expected_pnl
-                group by idClient) s2
+                        (select nameBroker, idClient, nameClient from {cls.query_builder.schema}.client) s0
 
-                on s0.idClient = s2.idClient
+                        left join
 
-                left join
+                        --nav
+                        (select idClient,
+                        sum(deposit) as deposit,
+                        sum(pnl) as pnl,
+                        sum(nav) as nav
+                        from
+                        (
+                        select idClient, deposit, 0 as pnl, deposit as nav from {cls.query_builder.schema}.deposit
+                        union all
+                        select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.realised_pnl
+                        union all
+                        select idClient, 0 as deposit, pnl, pnl as nav from {cls.query_builder.schema}.expected_pnl) as s
+                        group by idClient) s1
+                        on s0.idClient = s1.idClient
 
-                -- cost realised
-                (select idClient,
-                sum(costBuy) as costBuyRealised,
-                sum(costSell) as costSellRealised,
-                sum(costLoanFromDayLoan) as costLoanFromDayLoanRealised,
-                sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceRealised,
-                sum(costLoan) as costLoanRealised
-                from {cls.query_builder.schema}.realised_pnl
-                group by idClient) s3
+                        left join
 
-                on s0.idClient = s3.idClient
-                where s0.nameBroker = ?
+                        -- portfolio
+                        (select idClient,
+                        max(__createdAt__) as __createdAt__,
+                        max(__updatedAt__) as __updatedAt__,
+                        sum(totalValueSell) as totalValueSell,
+                        sum(minDeposit) as minDeposit,
+                        sum(costBuy) as costBuyExpected,
+                        sum(costSell) as costSellExpected,
+                        sum(costLoanFromDayLoan) as costLoanFromDayLoanExpected,
+                        sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceExpected,
+                        sum(costLoan) as costLoanExpected
+                        from {cls.query_builder.schema}.expected_pnl
+                        group by idClient) s2
+
+                        on s0.idClient = s2.idClient
+
+                        left join
+
+                        -- cost realised
+                        (select idClient,
+                        sum(costBuy) as costBuyRealised,
+                        sum(costSell) as costSellRealised,
+                        sum(costLoanFromDayLoan) as costLoanFromDayLoanRealised,
+                        sum(costLoanFromDayAdvance) as costLoanFromDayAdvanceRealised,
+                        sum(costLoan) as costLoanRealised
+                        from {cls.query_builder.schema}.realised_pnl
+                        group by idClient) s3
+
+                        on s0.idClient = s3.idClient
+                        where s0.nameBroker = ?
+                    ) _
+                    {filter_sql}
+                ) _
             """
-            cur = session.connection().exec_driver_sql(count_sql, tuple([broker_name])).cursor
+            cur = session.connection().exec_driver_sql(count_sql, tuple(count_params)).cursor
             total = cls.row_factory(cur=cur)[0]["total"]
-            cur = session.connection().exec_driver_sql(sql, tuple([broker_name, page*pageSize, pageSize])).cursor
+            cur = session.connection().exec_driver_sql(sql, tuple(select_params)).cursor
             managment = cls.data_frame_factory(cur=cur)
             return managment, total
 
     @classmethod
-    def get_portfolio_by_broker_name(cls, broker_name: str):
+    def get_portfolio_by_broker_name(cls, broker_name: str, filter_by: Dict):
+        params = [broker_name]
+        if len(filter_by) == 0:
+            filter_sql = ""
+        else:
+            filter_sql = []
+            for col in filter_by:
+                filter_sql.append(f"{col} {filter_by[col]['op']} ?")
+                params.append(filter_by[col]['value'])
+            filter_sql = " AND ".join(filter_sql)
+            filter_sql = f"WHERE {filter_sql}"
         with cls.session_scope() as session:
             sql = f"""
-                select idClient, ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl, __updatedAt__ as updatedAt
-                from
-                (select 
-                nameBroker,idClient, ticker, 
-                max(__createdAt__) as __createdAt__, max(__updatedAt__) as __updatedAt__ , 
-                sum(quantity) as quantity, 
-                sum(quantityAvailable) as quantityAvailable,
-                sum(totalValueBuy)/ sum(quantity) as priceBuy,
-                sum(totalValueSell)/ sum(quantity) as priceSell,
-                sum(totalValueBuy) as totalValueBuy,
-                sum(totalValueSell) as totalValueSell,
-                sum(pnl) as pnl
-                
-                from {cls.query_builder.schema}.expected_pnl
-                group by nameBroker, idClient, ticker
-                
-                ) as s
-                where nameBroker = ?
+                select *
+                from (
+                    select idClient, nameBroker, ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl, __updatedAt__ as updatedAt
+                    from
+                    (select 
+                    nameBroker,idClient, ticker, 
+                    max(__createdAt__) as __createdAt__, max(__updatedAt__) as __updatedAt__ , 
+                    sum(quantity) as quantity, 
+                    sum(quantityAvailable) as quantityAvailable,
+                    sum(totalValueBuy)/ sum(quantity) as priceBuy,
+                    sum(totalValueSell)/ sum(quantity) as priceSell,
+                    sum(totalValueBuy) as totalValueBuy,
+                    sum(totalValueSell) as totalValueSell,
+                    sum(pnl) as pnl
+                    
+                    from {cls.query_builder.schema}.expected_pnl
+                    group by nameBroker, idClient, ticker
+                    
+                    ) as s
+                    where nameBroker = ?
+                ) _
+                {filter_sql}
                 order by nameBroker, idClient, ticker 
             """
-            cur = session.connection().exec_driver_sql(sql, tuple([broker_name])).cursor
+            cur = session.connection().exec_driver_sql(sql, tuple(params)).cursor
             portfolio = cls.data_frame_factory(cur=cur)
             return portfolio

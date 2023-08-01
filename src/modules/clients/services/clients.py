@@ -1,3 +1,4 @@
+from typing import Dict
 import numpy as np
 import pandas as pd
 from src.common.consts import MessageConsts
@@ -83,12 +84,12 @@ class ClientService:
         }
         return results
 
-    def get_management_by_broker_name(self, broker_name: str, page: int, pageSize: int):
-        management, total = self.client_repo.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize)
+    def get_management_by_broker_name(self, broker_name: str, page: int, pageSize: int, filter_by: Dict):
+        management, total = self.client_repo.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize, filter_by=filter_by)
         management = management.replace({np.nan: None})
         return {"schema": list(management.columns), "records": management.round(3).values.tolist()}, total
 
-    def get_portfolio_by_broker_name(self, broker_name: str):
-        portfolio = self.client_repo.get_portfolio_by_broker_name(broker_name=broker_name)
+    def get_portfolio_by_broker_name(self, broker_name: str, filter_by: Dict):
+        portfolio = self.client_repo.get_portfolio_by_broker_name(broker_name=broker_name, filter_by=filter_by)
         portfolio = portfolio.replace({np.nan: None})
         return {"schema": list(portfolio.columns), "records": portfolio.round(3).values.tolist()}

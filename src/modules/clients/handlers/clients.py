@@ -11,7 +11,8 @@ from src.modules.auth.consts import AuthConsts
 from src.modules.auth.dependencies import RoleCodePermission, authentication
 from src.modules.auth.dtos import TokenPayloadDTO
 from src.modules.clients.dtos import ClientResponseDTO, AddClientPayloadDTO
-from src.modules.clients.dtos.clients import AddUserClientPayloadDTO
+from src.modules.clients.dtos.clients import AddUserClientPayloadDTO, GetManagementPayloadDTO, GetPortfolioPayloadDTO
+from src.modules.clients.entities import UserClientMembership
 from src.modules.clients.services import ClientService, UserClientService
 from src.modules.users.entities.users import RoleEnum, User
 from src.modules.users.services import UserService
@@ -42,52 +43,52 @@ USER_CLIENT_SERVICE = UserClientService()
 #     return JSONResponse(status_code=response.http_code, content=response.to_dict())
 
 
-@client_router.get(
-    "/management/management/{broker_name}",
+@client_router.post(
+    "/management/management",
     dependencies=[
         Depends(authentication)
     ],
 )
-def get_management_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], broker_name: str, page: int, pageSize: int):
-    if current_user["roleCode"] != AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value] and current_user["adminNameBroker"] != broker_name:
+def get_management_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], payload: GetManagementPayloadDTO):
+    if current_user["roleCode"] != AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value] and current_user["adminNameBroker"] != payload.brokerName:
         if current_user["adminNameBroker"] is None:
             raise BaseExceptionResponse(status_code=403, http_code=403, message=MessageConsts.FORBIDDEN)
-        if current_user["adminNameBroker"] != broker_name:
+        if current_user["adminNameBroker"] != payload.brokerName:
             response = PaginationResponse(
                 http_code=200,
                 status_code=200,
                 message=MessageConsts.SUCCESS,
                 data={"schema": [], "records":[]},
-                page=page,
-                page_size=pageSize,
+                page=payload.page,
+                page_size=payload.pageSize,
                 total=0,
             )
             return JSONResponse(status_code=response.http_code, content=response.to_dict())
 
-    data, total = CLIENT_SERVICE.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize)
+    data, total = CLIENT_SERVICE.get_management_by_broker_name(broker_name=payload.brokerName, page=payload.page, pageSize=payload.pageSize, filter_by=payload.filterBy.dict(exclude_unset=True))
     response = PaginationResponse(
         http_code=200,
         status_code=200,
         message=MessageConsts.SUCCESS,
         data=data,
-        page=page,
-        page_size=pageSize,
+        page=payload.page,
+        page_size=payload.pageSize,
         total=total,
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())
 
 
-@client_router.get(
-    "/management/portfolio/{broker_name}",
+@client_router.post(
+    "/management/portfolio",
     dependencies=[
         Depends(authentication)
     ],
 )
-def get_portfolio_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], broker_name: str):
-    if current_user["roleCode"] != AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value] and current_user["adminNameBroker"] != broker_name:
+def get_portfolio_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], payload: GetPortfolioPayloadDTO):
+    if current_user["roleCode"] != AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value] and current_user["adminNameBroker"] != payload.brokerName:
         if current_user["adminNameBroker"] is None:
             raise BaseExceptionResponse(status_code=403, http_code=403, message=MessageConsts.FORBIDDEN)
-        if current_user["adminNameBroker"] != broker_name:
+        if current_user["adminNameBroker"] != payload.brokerName:
             response = SuccessResponse(
                 http_code=200,
                 status_code=200,
@@ -95,7 +96,7 @@ def get_portfolio_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depend
                 data={"schema": [], "records":[]},
             )
             return JSONResponse(status_code=response.http_code, content=response.to_dict())
-    data = CLIENT_SERVICE.get_portfolio_by_broker_name(broker_name=broker_name)
+    data = CLIENT_SERVICE.get_portfolio_by_broker_name(broker_name=payload.brokerName, filter_by=payload.filterBy.dict(exclude_unset=True))
     response = SuccessResponse(
         http_code=200,
         status_code=200,
@@ -182,5 +183,24 @@ def get_user_client(user_id: int):
         status_code=200,
         message=MessageConsts.SUCCESS,
         data=DataUtils.serialize_objects(clients),
+    )
+    return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
+@user_client_router.delete(
+    "/users/{user_id}/clients/{id_client}",
+    dependencies=[
+        Depends(authentication),
+        Depends(
+            RoleCodePermission(required_role_codes=[AuthConsts.ROLE_CODE[RoleEnum.ADMIN.value]])
+        )
+    ]
+)
+def get_user_client(user_id: int, id_client: str):
+    record = USER_CLIENT_SERVICE.get_user_client(user_id=user_id, id_client=id_client)
+    USER_CLIENT_SERVICE.user_client_membership_repo.delete_by_id(id=record[UserClientMembership.id.name])
+    response = SuccessResponse(
+        http_code=200,
+        status_code=200,
+        message=MessageConsts.SUCCESS,
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())

@@ -1,1 +1,1 @@
-from .clients import ClientResponseDTO, AddClientPayloadDTO, AddUserClientPayloadDTO
+from .clients import ClientResponseDTO, AddClientPayloadDTO, AddUserClientPayloadDTO, GetManagementPayloadDTO, GetPortfolioPayloadDTO

@@ -14,6 +14,7 @@ from src.modules.users.entities import User
 from src.modules.users.entities.users import RoleEnum
 from src.modules.users.services import UserService
 from src.utils.data_utils import DataUtils
+from src.utils.security import Security
 
 user_router = APIRouter()
 USER_SERVICE = UserService()
@@ -51,11 +52,13 @@ def add_user(payload: AddUserPayloadDTO):
 )
 def pagination_user(page:int, pageSize:int):
     records, total = USER_SERVICE.get_user_pagination(page=page, pageSize=pageSize)
+    for record in records:
+        record[User.password.name] = Security.decrypt(record[User.password.name])
     response = PaginationResponse(
         http_code=200,
         status_code=200,
         message=MessageConsts.SUCCESS,
-        data=DataUtils.serialize_objects(records, exclude=["password"]),
+        data=DataUtils.serialize_objects(records),
         page=page,
         page_size=pageSize,
         total=total,
