@@ -125,7 +125,7 @@ class ClientRepo(BaseRepo):
     @classmethod
     def get_management_by_broker_name(cls, broker_name: str, page, pageSize, filter_by: Dict):
         count_params = [broker_name]
-        select_params = [broker_name, page*pageSize, pageSize]
+        select_params = [broker_name]
         if len(filter_by) == 0:
             filter_sql = ""
         else:
@@ -136,6 +136,7 @@ class ClientRepo(BaseRepo):
                 count_params.append(filter_by[col]['value'])
             filter_sql = " AND ".join(filter_sql)
             filter_sql = f"WHERE {filter_sql}"
+        select_params += [page*pageSize, pageSize]
         with cls.session_scope() as session:
             sql = f"""
                 select *
@@ -216,11 +217,11 @@ class ClientRepo(BaseRepo):
 
                     on s0.idClient = s3.idClient
                     where s0.nameBroker = ?
-                    order by s0.idClient
-                    OFFSET ? ROWS
-                    FETCH NEXT ? ROWS ONLY
                 ) _
                 {filter_sql}
+                order by idClient
+                OFFSET ? ROWS
+                FETCH NEXT ? ROWS ONLY
             """
             count_sql = f"""
                 select count(*) as total
