@@ -58,14 +58,16 @@ def get_management_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depen
                 http_code=200,
                 status_code=200,
                 message=MessageConsts.SUCCESS,
-                data={"schema": [], "records":[]},
+                data={"schema": [], "records": []},
                 page=payload.page,
                 page_size=payload.pageSize,
                 total=0,
             )
             return JSONResponse(status_code=response.http_code, content=response.to_dict())
 
-    data, total = CLIENT_SERVICE.get_management_by_broker_name(broker_name=payload.brokerName, page=payload.page, pageSize=payload.pageSize, filter_by=payload.filterBy.dict(exclude_unset=True))
+    data, total = CLIENT_SERVICE.get_management_by_broker_name(
+        broker_name=payload.brokerName, page=payload.page, pageSize=payload.pageSize, filter_by=payload.filterBy.dict(exclude_unset=True), sort_by=[s.dict(exclude_unset=True) for s in payload.sortBy]
+    )
     response = PaginationResponse(
         http_code=200,
         status_code=200,
@@ -93,10 +95,11 @@ def get_portfolio_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depend
                 http_code=200,
                 status_code=200,
                 message=MessageConsts.SUCCESS,
-                data={"schema": [], "records":[]},
+                data={"schema": [], "records": []},
             )
             return JSONResponse(status_code=response.http_code, content=response.to_dict())
-    data = CLIENT_SERVICE.get_portfolio_by_broker_name(broker_name=payload.brokerName, filter_by=payload.filterBy.dict(exclude_unset=True))
+    data = CLIENT_SERVICE.get_portfolio_by_broker_name(
+        broker_name=payload.brokerName, filter_by=payload.filterBy.dict(exclude_unset=True))
     response = SuccessResponse(
         http_code=200,
         status_code=200,
@@ -114,7 +117,8 @@ def get_portfolio_by_broker_name(current_user: Annotated[TokenPayloadDTO, Depend
     ],
 )
 def pagination_client(current_user: Annotated[TokenPayloadDTO, Depends(authentication)], page: int, pageSize: int, brokerName: Optional[str] = None):
-    records, total = CLIENT_SERVICE.get_client_pagination(current_user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
+    records, total = CLIENT_SERVICE.get_client_pagination(
+        current_user=current_user, page=page, pageSize=pageSize, brokerName=brokerName)
     response = PaginationResponse(
         http_code=200,
         status_code=200,
@@ -148,6 +152,7 @@ def get_report_by_id_client(current_user: Annotated[TokenPayloadDTO, Depends(aut
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())
 
+
 @user_client_router.post(
     "/",
     dependencies=[
@@ -165,6 +170,7 @@ def add_user_client(payload: AddUserClientPayloadDTO):
         message=MessageConsts.SUCCESS,
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
 
 @user_client_router.get(
     "/users/{user_id}/clients",
@@ -185,6 +191,7 @@ def get_user_client(user_id: int):
         data=DataUtils.serialize_objects(clients),
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())
+
 
 @user_client_router.delete(
     "/users/{user_id}/clients/{id_client}",

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 import numpy as np
 import pandas as pd
 from src.common.consts import MessageConsts
@@ -84,8 +84,8 @@ class ClientService:
         }
         return results
 
-    def get_management_by_broker_name(self, broker_name: str, page: int, pageSize: int, filter_by: Dict):
-        management, total = self.client_repo.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize, filter_by=filter_by)
+    def get_management_by_broker_name(self, broker_name: str, page: int, pageSize: int, filter_by: Dict, sort_by: List[Dict]):
+        management, total = self.client_repo.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize, filter_by=filter_by, sort_by=sort_by)
         management = management.replace({np.nan: None})
         return {"schema": list(management.columns), "records": management.round(3).values.tolist()}, total
 

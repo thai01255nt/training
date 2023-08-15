@@ -123,9 +123,13 @@ class ClientRepo(BaseRepo):
             return expected_pnl, realised_pnl, deposit, portfolio
 
     @classmethod
-    def get_management_by_broker_name(cls, broker_name: str, page, pageSize, filter_by: Dict):
+    def get_management_by_broker_name(cls, broker_name: str, page, pageSize, filter_by: Dict, sort_by: List[Dict]):
         count_params = [broker_name]
         select_params = [broker_name]
+        if len(sort_by) == 0:
+            sort_by.append({"field": "nav", "direction": "desc"})
+        sort_sql = [f"""{col["field"]} {col["direction"]}""" for col in sort_by]
+        sort_sql = "" if len(sort_sql) == 0 else "ORDER BY " + ", ".join(sort_sql)
         if len(filter_by) == 0:
             filter_sql = ""
         else:
@@ -219,7 +223,7 @@ class ClientRepo(BaseRepo):
                     where s0.nameBroker = ?
                 ) _
                 {filter_sql}
-                order by idClient
+                {sort_sql}
                 OFFSET ? ROWS
                 FETCH NEXT ? ROWS ONLY
             """

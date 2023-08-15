@@ -11,7 +11,8 @@ OPS = [
     ">=",
     "<=",
 ]
-
+SORT_DIRECTIONS = ["ASC", "DESC"]
+MANAMENT_SORT_FIELDS = ["nav", "totalValueSell"]
 
 class AddClientPayloadDTO(BaseDTO):
     brokerID: int
@@ -91,6 +92,21 @@ class ManagmentFilterByDTO(BaseDTO):
         return {"op": op, "value": value/100}
 
 
+class ManagementOrderByDTO(BaseDTO):
+    field: str
+    direction: str
+
+    @validator("field")
+    def validate_field(cls, v):
+        Validator.validate_allowed(allowed_values=MANAMENT_SORT_FIELDS, value=v)
+        return v
+
+    @validator("direction")
+    def validate_direction(cls, v):
+        Validator.validate_allowed(allowed_values=SORT_DIRECTIONS, value=v)
+        return v
+
+
 class GetPortfolioPayloadDTO(BaseDTO):
     brokerName: str
     filterBy: PortfolioFilterByDTO = Field(default_factory=lambda: PortfolioFilterByDTO())
@@ -98,6 +114,7 @@ class GetPortfolioPayloadDTO(BaseDTO):
 
 class GetManagementPayloadDTO(BaseDTO):
     brokerName: str
+    sortBy: List[ManagementOrderByDTO] = Field(default_factory=lambda: [])
     filterBy: ManagmentFilterByDTO = Field(default_factory=lambda: ManagmentFilterByDTO())
     page: int
     pageSize: int
