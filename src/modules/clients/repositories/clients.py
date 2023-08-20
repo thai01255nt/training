@@ -110,7 +110,7 @@ class ClientRepo(BaseRepo):
                 sum(totalValueBuy) as totalValueBuy,
                 sum(totalValueSell) as totalValueSell,
                 sum(pnl) as pnl,
-                max(__updatedAt__) as "Ngày/Giờ Cập nhật"
+                max(__updatedAt__) as updatedAt
 
                 from {cls.query_builder.schema}.expected_pnl
                 where idClient = ?
@@ -166,7 +166,8 @@ class ClientRepo(BaseRepo):
                     s3.costSellRealised,
                     s3.costLoanFromDayLoanRealised,
                     s3.costLoanFromDayAdvanceRealised,
-                    s3.costLoanRealised
+                    s3.costLoanRealised,
+                    s2.__updatedAt__ as updatedAt
 
                     from
 
