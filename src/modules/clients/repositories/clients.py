@@ -59,6 +59,7 @@ class ClientRepo(BaseRepo):
                     minDeposit
                 FROM {cls.query_builder.schema}.expected_pnl
                 WHERE idClient = ?
+                ORDER BY idClient ASC, dateBuy ASC, ticker ASC
             """
             cur = session.connection().exec_driver_sql(expected_pnl_sql, tuple([id_client])).cursor
             expected_pnl = cls.data_frame_factory(cur=cur)
@@ -87,6 +88,7 @@ class ClientRepo(BaseRepo):
                     minDeposit
                 FROM {cls.query_builder.schema}.realised_pnl
                 WHERE idClient = ?
+                ORDER BY idClient ASC, dateBuy ASC, ticker ASC
             """
             cur = session.connection().exec_driver_sql(realised_pnl_sql, tuple([id_client])).cursor
             realised_pnl = cls.data_frame_factory(cur=cur)
@@ -115,7 +117,6 @@ class ClientRepo(BaseRepo):
                 from {cls.query_builder.schema}.expected_pnl
                 where idClient = ?
                 group by idClient, ticker
-
                 order by idClient, ticker
             """
             cur = session.connection().exec_driver_sql(portfolio_sql, tuple([id_client])).cursor
