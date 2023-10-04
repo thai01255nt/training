@@ -86,6 +86,9 @@ class ClientService:
 
     def get_management_by_broker_name(self, broker_name: str, page: int, pageSize: int, filter_by: Dict, sort_by: List[Dict]):
         management, total = self.client_repo.get_management_by_broker_name(broker_name=broker_name, page=page, pageSize=pageSize, filter_by=filter_by, sort_by=sort_by)
+        sum_management = pd.DataFrame(management[["deposit", "nav", "totalValueBuy", "totalValueSell", "remainingDeposit", "pnl"]].sum(axis=0)).T
+        sum_management["idClient"] = "Tổng"
+        management = pd.concat([management, sum_management])
         management = management.replace({np.nan: None})
         return {"schema": list(management.columns), "records": management.round(3).values.tolist()}, total
 

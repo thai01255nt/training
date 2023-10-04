@@ -10,6 +10,7 @@ OPS = [
     "<",
     ">=",
     "<=",
+    "!="
 ]
 SORT_DIRECTIONS = ["ASC", "DESC"]
 MANAMENT_SORT_FIELDS = ["nav", "totalValueSell"]
