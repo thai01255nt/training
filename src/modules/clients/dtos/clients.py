@@ -13,7 +13,7 @@ OPS = [
     "!="
 ]
 SORT_DIRECTIONS = ["ASC", "DESC"]
-MANAMENT_SORT_FIELDS = ["nav", "totalValueSell"]
+MANAMENT_SORT_FIELDS = ["idClient", "nav", "totalValueSell"]
 
 class AddClientPayloadDTO(BaseDTO):
     brokerID: int

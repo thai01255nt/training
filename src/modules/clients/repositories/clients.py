@@ -337,9 +337,9 @@ class ClientRepo(BaseRepo):
             filter_sql = f"WHERE {filter_sql}"
         with cls.session_scope() as session:
             sql = f"""
-                select *
+                select ep.*, c.nameClient
                 from (
-                    select idClient, nameBroker, ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl, __updatedAt__ as updatedAt
+                    select idClient, ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl, __updatedAt__ as updatedAt
                     from
                     (select 
                     nameBroker,idClient, ticker, 
@@ -357,7 +357,8 @@ class ClientRepo(BaseRepo):
                     
                     ) as s
                     where nameBroker = ?
-                ) _
+                ) ep
+                left join {cls.query_builder.schema}.client c on c.idClient = ep.idClient
                 {filter_sql}
                 order by nameBroker, idClient, ticker 
             """
