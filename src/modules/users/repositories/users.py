@@ -31,7 +31,7 @@ class UserRepo(BaseRepo):
             OFFSET ? ROWS
             FETCH NEXT ? ROWS ONLY;
         """
-        select_params = [page, pageSize]
+        select_params = [page*pageSize, pageSize]
         with cls.session_scope() as session:
             cur = session.connection().exec_driver_sql(count_sql).cursor
             total = cls.row_factory(cur=cur)
