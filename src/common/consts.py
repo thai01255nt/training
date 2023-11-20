@@ -12,7 +12,7 @@ class SQLServerConsts:
     GMT_7_NOW = f"FORMAT(SWITCHOFFSET(SYSUTCDATETIME(), '+07:00'), '{DATABASE_TIME_FORMAT}')"
     MAX_PARAMETERS = 2050
 
-    SCHEMA = "trading"
+    SCHEMA = "dbo"
 
 
 class MessageConsts:

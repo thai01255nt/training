@@ -337,28 +337,31 @@ class ClientRepo(BaseRepo):
             filter_sql = f"WHERE {filter_sql}"
         with cls.session_scope() as session:
             sql = f"""
-                select ep.*, c.nameClient
+                select *
                 from (
-                    select idClient, ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl, __updatedAt__ as updatedAt
-                    from
-                    (select 
-                    nameBroker,idClient, ticker, 
-                    max(__createdAt__) as __createdAt__, max(__updatedAt__) as __updatedAt__ , 
-                    sum(quantity) as quantity, 
-                    sum(quantityAvailable) as quantityAvailable,
-                    sum(totalValueBuy)/ sum(quantity) as priceBuy,
-                    sum(totalValueSell)/ sum(quantity) as priceSell,
-                    sum(totalValueBuy) as totalValueBuy,
-                    sum(totalValueSell) as totalValueSell,
-                    sum(pnl) as pnl
-                    
-                    from {cls.query_builder.schema}.expected_pnl
-                    group by nameBroker, idClient, ticker
-                    
-                    ) as s
-                    where nameBroker = ?
-                ) ep
-                left join {cls.query_builder.schema}.client c on c.idClient = ep.idClient
+                    select ep.*, c.nameClient, nameBroker
+                    from (
+                        select idClient, ticker, quantity, quantityAvailable, priceBuy, priceSell, totalValueBuy, totalValueSell, pnl, __updatedAt__ as updatedAt
+                        from
+                        (select 
+                        nameBroker,idClient, ticker, 
+                        max(__createdAt__) as __createdAt__, max(__updatedAt__) as __updatedAt__ , 
+                        sum(quantity) as quantity, 
+                        sum(quantityAvailable) as quantityAvailable,
+                        sum(totalValueBuy)/ sum(quantity) as priceBuy,
+                        sum(totalValueSell)/ sum(quantity) as priceSell,
+                        sum(totalValueBuy) as totalValueBuy,
+                        sum(totalValueSell) as totalValueSell,
+                        sum(pnl) as pnl
+                        
+                        from {cls.query_builder.schema}.expected_pnl
+                        group by nameBroker, idClient, ticker
+                        
+                        ) as s
+                        where nameBroker = ?
+                    ) ep
+                    left join {cls.query_builder.schema}.client c on c.idClient = ep.idClient
+                ) _
                 {filter_sql}
                 order by nameBroker, idClient, ticker 
             """
