@@ -29,7 +29,7 @@ class UserRepo(BaseRepo):
             from (
                 select u.*, nameBroker
                 FROM {cls.query_builder.full_table_name} u
-                left join client c on c.idClient = u.email
+                left join trading.client c on c.idClient = u.email
             ) _
             ORDER BY role, id
             OFFSET ? ROWS
