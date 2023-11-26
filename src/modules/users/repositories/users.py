@@ -1,5 +1,6 @@
 from typing import Dict, List
 from sqlalchemy import select
+from src.common.consts import SQLServerConsts
 
 from src.db.sessions import backend_session_scope
 from src.modules.base.query_builder import BaseQueryBuilder
@@ -41,7 +42,7 @@ class UserRepo(BaseRepo):
         count_sql = f"""
             SELECT count(*) as total
             FROM {cls.query_builder.full_table_name} u
-            left join client c on c.idClient = u.email
+            left join {SQLServerConsts.SCHEMA}.client c on c.idClient = u.email
             {filter_sql}
         """
         sql = f"""
@@ -49,7 +50,7 @@ class UserRepo(BaseRepo):
             from (
                 select u.*, nameBroker
                 FROM {cls.query_builder.full_table_name} u
-                left join client c on c.idClient = u.email
+                left join {SQLServerConsts.SCHEMA}.client c on c.idClient = u.email
             ) _
             {filter_sql}
             {sort_sql}
