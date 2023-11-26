@@ -1,10 +1,56 @@
 import datetime
-from typing import TypedDict, Optional
+from typing import List, TypedDict, Optional
 
-from pydantic import validator
+from pydantic import Field, validator
 
 from src.modules.base.dto import BaseDTO
 from src.utils.validator import Validator
+OPS = [
+    ">",
+    "<",
+    ">=",
+    "<=",
+    "!="
+]
+SORT_DIRECTIONS = ["ASC", "DESC"]
+USER_SORT_FIELDS = ["email", "nameBroker"]
+
+class UserOrderByDTO(BaseDTO):
+    field: str
+    direction: str
+
+    @validator("field")
+    def validate_field(cls, v):
+        Validator.validate_allowed(allowed_values=USER_SORT_FIELDS, value=v)
+        return v
+
+    @validator("direction")
+    def validate_direction(cls, v):
+        Validator.validate_allowed(allowed_values=SORT_DIRECTIONS, value=v)
+        return v
+    
+class UserFilterByDTO(BaseDTO):
+    email: Optional[str]
+    nameBroker: Optional[str]
+
+    @validator("email")
+    def validate_email(cls, v):
+        return {"op": "LIKE", "value": f"%{v}%"}
+
+    @validator("nameBroker")
+    def validate_nameBroker(cls, v):
+        return {"op": "LIKE", "value": f"%{v}%"}
+
+class GetUserPayloadDTO(BaseDTO):
+    sortBy: List[UserOrderByDTO] = Field(default_factory=lambda: [])
+    filterBy: UserFilterByDTO = Field(default_factory=lambda: UserFilterByDTO())
+    page: int
+    pageSize: int
+
+    @validator("pageSize")
+    def validate_pageSize(cls, v):
+        assert v > 0, "pageSize mustbe greater than zero"
+        return v
 
 
 class AddUserPayloadDTO(BaseDTO):

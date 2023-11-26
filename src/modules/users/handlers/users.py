@@ -9,7 +9,7 @@ from src.modules.auth.consts import AuthConsts
 from src.modules.auth.dependencies import authentication, RoleCodePermission
 from src.modules.auth.dtos.login import TokenPayloadDTO
 from src.modules.users.dtos import UserResponseDTO, AddUserPayloadDTO
-from src.modules.users.dtos.users import AdminEditUserPayloadDTO, ResetPasswordPayloadDTO
+from src.modules.users.dtos.users import AdminEditUserPayloadDTO, GetUserPayloadDTO, ResetPasswordPayloadDTO
 from src.modules.users.entities import User
 from src.modules.users.entities.users import RoleEnum
 from src.modules.users.services import UserService
@@ -40,8 +40,8 @@ def add_user(payload: AddUserPayloadDTO):
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())
 
-@user_router.get(
-    "/",
+@user_router.post(
+    "/search",
     # response_model=UserResponseDTO,
     dependencies=[
         Depends(authentication),
@@ -50,8 +50,8 @@ def add_user(payload: AddUserPayloadDTO):
         )
     ]
 )
-def pagination_user(page:int, pageSize:int):
-    records, total = USER_SERVICE.get_user_pagination(page=page, pageSize=pageSize)
+def pagination_user(payload: GetUserPayloadDTO):
+    records, total = USER_SERVICE.get_user_pagination(page=payload.page, pageSize=payload.pageSize, filter_by=payload.filterBy.dict(exclude_unset=True), sort_by=[s.dict(exclude_unset=True) for s in payload.sortBy])
     for record in records:
         record[User.password.name] = Security.decrypt(record[User.password.name])
     response = PaginationResponse(
@@ -59,8 +59,8 @@ def pagination_user(page:int, pageSize:int):
         status_code=200,
         message=MessageConsts.SUCCESS,
         data=DataUtils.serialize_objects(records),
-        page=page,
-        page_size=pageSize,
+        page=payload.page,
+        page_size=payload.pageSize,
         total=total,
     )
     return JSONResponse(status_code=response.http_code, content=response.to_dict())

@@ -1,3 +1,4 @@
+from typing import Dict, List
 from src.common.consts import MessageConsts
 from src.common.responses.exceptions import BaseExceptionResponse
 from src.modules.auth.dtos.login import TokenPayloadDTO
@@ -59,8 +60,8 @@ class UserService:
         data[User.role.name] = RoleEnum.TRADER.value
         return self.user_repo.insert(record=data, returning=True)
     
-    def get_user_pagination(self, page: int, pageSize: int):
-        return self.user_repo.get_pagination(page=page, pageSize=pageSize)
+    def get_user_pagination(self, page: int, pageSize: int, filter_by: Dict, sort_by: List[Dict]):
+        return self.user_repo.get_pagination(page=page, pageSize=pageSize, filter_by=filter_by, sort_by=sort_by)
 
     def reset_password(self, current_user: TokenPayloadDTO, payload: ResetPasswordPayloadDTO):
         user = self.get_by_id(current_user["id"])
